@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Cost Calculator - Live Group (Updated)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .calculator {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d32f2f;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .version {
+            background: #ffe0b2;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        .col {
+            flex: 1;
+        }
+        .results {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .cost-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .total {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d32f2f;
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        button {
+            background: #d32f2f;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 5px;
+        }
+        button:hover {
+            background: #b71c1c;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            color: #856404;
+        }
+        @media print {
+            body {
+                background: white;
+            }
+            .calculator {
+                box-shadow: none;
+            }
+            button {
+                display: none;
+            }
+            .form-group select, .form-group input {
+                border: none;
+                font-weight: bold;
+            }
+            .results {
+                background: white;
+                border: 2px solid #333;
+                margin-top: 30px;
+            }
+            #printHeader {
+                display: block !important;
+            }
+        }
+        #printHeader {
+            display: none;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        #printHeader h3 {
+            margin: 0 0 10px 0;
+            color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Event Cost Calculator</h1>
+        <p class="subtitle">Quick estimate tool for event budgeting - Live Group</p>
+        <div class="version">Version 2.0 - Updated with current 2025 market rates</div>
+        
+        <div class="section">
+            <h2>Event Details</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Event Type</label>
+                        <select id="eventType">
+                            <option value="meeting">Internal Meeting</option>
+                            <option value="conference">Conference/AGM</option>
+                            <option value="party">Christmas Party</option>
+                            <option value="awards">Awards/Gala Dinner</option>
+                            <option value="client">Client Entertainment</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Number of Attendees</label>
+                        <input type="number" id="attendees" value="100" min="10" max="1000">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <select id="location">
+                            <option value="london">London</option>
+                            <option value="major">Major City (Manchester, Birmingham)</option>
+                            <option value="regional">Regional City</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Venue Standard</label>
+                        <select id="venueStandard">
+                            <option value="standard">Standard</option>
+                            <option value="premium">Premium</option>
+                            <option value="luxury">Luxury</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Additional Requirements</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>AV/Production Level</label>
+                        <select id="avLevel">
+                            <option value="basic">Basic (Screen & Sound)</option>
+                            <option value="standard">Standard (Stage & Lighting)</option>
+                            <option value="premium">Premium (Full Production)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Hybrid/Streaming Required?</label>
+                        <select id="hybrid">
+                            <option value="no">No</option>
+                            <option value="yes">Yes (+50% to AV costs)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Catering Level</label>
+                        <select id="catering">
+                            <option value="standard">Standard</option>
+                            <option value="enhanced">Enhanced (+25%)</option>
+                            <option value="premium">Premium (+50%)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Entertainment/Speakers</label>
+                        <select id="entertainment">
+                            <option value="none">None</option>
+                            <option value="basic">Basic (DJ/Background)</option>
+                            <option value="premium">Premium (Band/Headline Speaker)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="calculateCost()">Calculate Estimated Cost</button>
+
+        <div id="results" class="results" style="display: none;">
+            <h2>Estimated Event Cost</h2>
+            <div id="breakdown"></div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button onclick="printResults()">🖨️ Print Estimate</button>
+                <button onclick="copyResults()">📋 Copy to Clipboard</button>
+            </div>
+            <div id="copyMessage" style="display: none; color: green; margin-top: 10px;">
+                ✓ Estimate copied to clipboard!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Updated pricing data for 2025
+        const ddrRates = {
+            london: { standard: 110, premium: 145, luxury: 195 },
+            major: { standard: 75, premium: 105, luxury: 145 },
+            regional: { standard: 65, premium: 85, luxury: 125 }
+        };
+
+        const avCosts = {
+            basic: { small: 1200, medium: 3500, large: 12000 },
+            standard: { small: 2500, medium: 8500, large: 35000 },
+            premium: { small: 5000, medium: 25000, large: 85000 }
+        };
+
+        const eventMultipliers = {
+            meeting: 0.8,
+            conference: 1.0,
+            party: 1.1,
+            awards: 1.3,
+            client: 1.2
+        };
+
+        function calculateCost() {
+            // Get inputs
+            const eventType = document.getElementById('eventType').value;
+            const attendees = parseInt(document.getElementById('attendees').value);
+            const location = document.getElementById('location').value;
+            const venueStandard = document.getElementById('venueStandard').value;
+            const avLevel = document.getElementById('avLevel').value;
+            const hybrid = document.getElementById('hybrid').value;
+            const catering = document.getElementById('catering').value;
+            const entertainment = document.getElementById('entertainment').value;
+
+            // Calculate venue cost
+            const ddr = ddrRates[location][venueStandard];
+            let venueCost = ddr * attendees;
+
+            // Determine event size for AV
+            let eventSize = 'small';
+            if (attendees > 50 && attendees <= 200) eventSize = 'medium';
+            if (attendees > 200) eventSize = 'large';
+
+            // Calculate AV cost
+            let avCost = avCosts[avLevel][eventSize];
+            if (hybrid === 'yes') avCost *= 1.5;
+
+            // Calculate catering adjustment
+            let cateringMultiplier = 1;
+            if (catering === 'enhanced') cateringMultiplier = 1.25;
+            if (catering === 'premium') cateringMultiplier = 1.5;
+            venueCost *= cateringMultiplier;
+
+            // Entertainment costs (increased)
+            let entertainmentCost = 0;
+            if (entertainment === 'basic') entertainmentCost = 1000 + (attendees * 8);
+            if (entertainment === 'premium') entertainmentCost = 5000 + (attendees * 25);
+
+            // Additional costs
+            const managementFee = (venueCost + avCost) * 0.18; // Increased to 18%
+            const photography = attendees > 50 ? 2500 : 0; // Increased
+            const misc = attendees * 8; // Increased for printing, signage, etc.
+
+            // Apply event type multiplier
+            const subtotal = (venueCost + avCost + entertainmentCost + managementFee + photography + misc) * eventMultipliers[eventType];
+            
+            // Add service charge and VAT
+            const serviceCharge = subtotal * 0.125;
+            const vatAmount = (subtotal + serviceCharge) * 0.20;
+            const contingency = subtotal * 0.15; // Increased to 15%
+            
+            const total = subtotal + serviceCharge + vatAmount + contingency;
+
+            // Display results
+            const breakdown = `
+                <div class="cost-line">
+                    <span>Venue & Catering (${attendees} people @ £${ddr}/DDR)</span>
+                    <span>£${venueCost.toLocaleString()}</span>
+                </div>
+                <div class="cost-line">
+                    <span>AV & Production${hybrid === 'yes' ? ' (inc. streaming)' : ''}</span>
+                    <span>£${avCost.toLocaleString()}</span>
+                </div>
+                ${entertainmentCost > 0 ? `<div class="cost-line">
+                    <span>Entertainment</span>
+                    <span>£${entertainmentCost.toLocaleString()}</span>
+                </div>` : ''}
+                <div class="cost-line">
+                    <span>Event Management (18%)</span>
+                    <span>£${Math.round(managementFee).toLocaleString()}</span>
+                </div>
+                ${photography > 0 ? `<div class="cost-line">
+                    <span>Photography/Videography</span>
+                    <span>£${photography.toLocaleString()}</span>
+                </div>` : ''}
+                <div class="cost-line">
+                    <span>Additional Costs (printing, signage, etc.)</span>
+                    <span>£${misc.toLocaleString()}</span>
+                </div>
+                <div class="cost-line">
+                    <span>Service Charge (12.5%)</span>
+                    <span>£${Math.round(serviceCharge).toLocaleString()}</span>
+                </div>
+                <div class="cost-line">
+                    <span>VAT (20%)</span>
+                    <span>£${Math.round(vatAmount).toLocaleString()}</span>
+                </div>
+                <div class="cost-line">
+                    <span>Contingency (15%)</span>
+                    <span>£${Math.round(contingency).toLocaleString()}</span>
+                </div>
+                <div class="cost-line total">
+                    <span>Total Estimated Cost</span>
+                    <span>£${Math.round(total).toLocaleString()}</span>
+                </div>
+                <div class="cost-line">
+                    <span>Cost per person</span>
+                    <span>£${Math.round(total / attendees)}</span>
+                </div>
+                ${avLevel === 'premium' && attendees > 200 ? `<div class="warning">
+                    <strong>Note:</strong> Premium productions for large events can range from £85,000 to £150,000+ depending on complexity, multiple stages, LED walls, and broadcast requirements.
+                </div>` : ''}
+                <div class="info">
+                    <strong>Important:</strong> This calculator reflects current 2025 market rates. Premium venues and peak dates may exceed these estimates by 20-30%. For accurate quotes, contact Live Group with your specific requirements.
+                </div>
+            `;
+
+            document.getElementById('breakdown').innerHTML = breakdown;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function printResults() {
+            // Get event details for header
+            const eventType = document.getElementById('eventType').options[document.getElementById('eventType').selectedIndex].text;
+            const attendees = document.getElementById('attendees').value;
+            const location = document.getElementById('location').options[document.getElementById('location').selectedIndex].text;
+            const venueStandard = document.getElementById('venueStandard').options[document.getElementById('venueStandard').selectedIndex].text;
+            
+            // Create print header
+            const printHeader = `
+                <div id="printHeader">
+                    <h3>Live Group Event Cost Estimate</h3>
+                    <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    <p><strong>Event Type:</strong> ${eventType}</p>
+                    <p><strong>Attendees:</strong> ${attendees}</p>
+                    <p><strong>Location:</strong> ${location} - ${venueStandard}</p>
+                </div>
+            `;
+            
+            // Add header to results if not already there
+            if (!document.getElementById('printHeader')) {
+                document.getElementById('results').insertAdjacentHTML('afterbegin', printHeader);
+            }
+            
+            // Print
+            window.print();
+        }
+
+        function copyResults() {
+            // Get all the values
+            const eventType = document.getElementById('eventType').options[document.getElementById('eventType').selectedIndex].text;
+            const attendees = document.getElementById('attendees').value;
+            const location = document.getElementById('location').options[document.getElementById('location').selectedIndex].text;
+            const venueStandard = document.getElementById('venueStandard').options[document.getElementById('venueStandard').selectedIndex].text;
+            
+            // Get the cost breakdown
+            const breakdownElement = document.getElementById('breakdown');
+            const costLines = breakdownElement.querySelectorAll('.cost-line');
+            
+            // Build text version
+            let textVersion = `LIVE GROUP EVENT COST ESTIMATE\n`;
+            textVersion += `Date: ${new Date().toLocaleDateString()}\n`;
+            textVersion += `Event Type: ${eventType}\n`;
+            textVersion += `Attendees: ${attendees}\n`;
+            textVersion += `Location: ${location} - ${venueStandard}\n\n`;
+            textVersion += `COST BREAKDOWN:\n`;
+            
+            costLines.forEach(line => {
+                const label = line.querySelector('span:first-child').textContent;
+                const value = line.querySelector('span:last-child').textContent;
+                textVersion += `${label}: ${value}\n`;
+            });
+            
+            textVersion += `\nNote: This is an estimate based on current 2025 market rates. Contact Live Group for detailed quotes.`;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(textVersion).then(() => {
+                // Show success message
+                document.getElementById('copyMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('copyMessage').style.display = 'none';
+                }, 3000);
+            }).catch(err => {
+                alert('Failed to copy to clipboard. Please try selecting and copying manually.');
+            });
+        }
+    </script>
+</body>
+</html>
