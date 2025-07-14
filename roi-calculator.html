@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B2B Event ROI Calculator - Live Group</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .calculator {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d32f2f;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+        .col {
+            flex: 1;
+        }
+        .results {
+            display: none;
+        }
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .metric-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .positive {
+            color: #2e7d32;
+        }
+        .negative {
+            color: #d32f2f;
+        }
+        .roi-summary {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+        button {
+            background: #d32f2f;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #b71c1c;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        .help-text {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 3px;
+        }
+        .breakdown-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .breakdown-table th {
+            background: #f5f5f5;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .breakdown-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .pipeline-timeline {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .timeline-item {
+            text-align: center;
+            flex: 1;
+        }
+        .timeline-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .timeline-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-top: 5px;
+        }
+        @media print {
+            body { background: white; }
+            .calculator { box-shadow: none; }
+            button { display: none; }
+            .form-group select, .form-group input {
+                border: none;
+                font-weight: bold;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>B2B Event ROI Calculator</h1>
+        <p class="subtitle">Demonstrate the true business value of your B2B events</p>
+        
+        <div class="section">
+            <h2>Event Investment</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Total Event Cost (£)</label>
+                        <input type="number" id="eventCost" value="50000" min="1000">
+                        <span class="help-text">Include all costs: venue, catering, AV, marketing, staff time</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Event Type</label>
+                        <select id="eventType">
+                            <option value="conference">Conference/Summit</option>
+                            <option value="exhibition">Exhibition/Trade Show</option>
+                            <option value="seminar">Educational Seminar</option>
+                            <option value="hospitality">Hospitality/Executive Event</option>
+                            <option value="roadshow">Roadshow/Regional Event</option>
+                            <option value="virtual">Virtual/Hybrid Event</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Attendance & Engagement</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Total Registered</label>
+                        <input type="number" id="registered" value="200" min="1">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Actual Attendees</label>
+                        <input type="number" id="attended" value="150" min="1">
+                        <span class="help-text">Accounts for no-shows</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Target Accounts Present</label>
+                        <input type="number" id="targetAccounts" value="25" min="0">
+                        <span class="help-text">Key accounts in attendance</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Lead Generation</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>New Leads Generated</label>
+                        <input type="number" id="newLeads" value="45" min="0">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Qualified Leads (MQLs)</label>
+                        <input type="number" id="qualifiedLeads" value="20" min="0">
+                        <span class="help-text">Marketing qualified</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Sales Accepted Leads (SALs)</label>
+                        <input type="number" id="salesAccepted" value="12" min="0">
+                        <span class="help-text">Accepted by sales team</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Pipeline & Revenue Impact</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Opportunities Created</label>
+                        <input type="number" id="opportunities" value="8" min="0">
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Total Pipeline Value (£)</label>
+                        <input type="number" id="pipelineValue" value="450000" min="0">
+                        <span class="help-text">Sum of all opportunities</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Average Deal Size (£)</label>
+                        <input type="number" id="avgDealSize" value="56250" min="0">
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Win Rate (%)</label>
+                        <input type="number" id="winRate" value="25" min="0" max="100">
+                        <span class="help-text">Historical close rate</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Closed Won Revenue (£)</label>
+                        <input type="number" id="closedRevenue" value="0" min="0">
+                        <span class="help-text">Already closed deals</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Sales Cycle (Days)</label>
+                        <input type="number" id="salesCycle" value="90" min="1">
+                        <span class="help-text">Average time to close</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Additional Business Value</h2>
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <label>Existing Customer Attendees</label>
+                        <input type="number" id="existingCustomers" value="30" min="0">
+                        <span class="help-text">For retention/upsell</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Upsell/Renewal Influence (£)</label>
+                        <input type="number" id="upsellValue" value="75000" min="0">
+                        <span class="help-text">Retention & expansion</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group">
+                        <label>Partner/Channel Value (£)</label>
+                        <input type="number" id="partnerValue" value="50000" min="0">
+                        <span class="help-text">Indirect revenue impact</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="calculateROI()">Calculate Event ROI</button>
+        <button onclick="resetCalculator()">Reset</button>
+
+        <div id="results" class="results">
+            <h2>Event ROI Analysis</h2>
+            
+            <div id="roiSummary" class="roi-summary"></div>
+            
+            <div class="row">
+                <div class="col">
+                    <div class="metric-card">
+                        <div class="metric-title">Cost Per Attendee</div>
+                        <div class="metric-value" id="costPerAttendee">£0</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="metric-card">
+                        <div class="metric-title">Cost Per Lead</div>
+                        <div class="metric-value" id="costPerLead">£0</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="metric-card">
+                        <div class="metric-title">Cost Per Opportunity</div>
+                        <div class="metric-value" id="costPerOpp">£0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Pipeline Progression</h3>
+                <div id="pipelineChart" class="pipeline-timeline"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>Revenue Timeline</h3>
+                <div id="revenueTimeline"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>ROI Breakdown</h3>
+                <table class="breakdown-table">
+                    <thead>
+                        <tr>
+                            <th>Revenue Source</th>
+                            <th>Value</th>
+                            <th>Confidence</th>
+                            <th>Timeline</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roiBreakdown"></tbody>
+                </table>
+            </div>
+
+            <div class="info">
+                <strong>How to use these results:</strong><br>
+                • <strong>Immediate ROI</strong> shows return from closed deals only<br>
+                • <strong>Projected ROI</strong> includes pipeline at historical win rates<br>
+                • <strong>Total Business Value</strong> includes customer retention and partner impact<br>
+                • Compare your <strong>Cost Per Lead</strong> to other marketing channels<br>
+                • Track actual vs projected over time to improve accuracy
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button onclick="printResults()">🖨️ Print Analysis</button>
+                <button onclick="copyResults()">📋 Copy Results</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateROI() {
+            // Get all inputs
+            const eventCost = parseFloat(document.getElementById('eventCost').value) || 0;
+            const eventType = document.getElementById('eventType').value;
+            const registered = parseInt(document.getElementById('registered').value) || 0;
+            const attended = parseInt(document.getElementById('attended').value) || 0;
+            const targetAccounts = parseInt(document.getElementById('targetAccounts').value) || 0;
+            const newLeads = parseInt(document.getElementById('newLeads').value) || 0;
+            const qualifiedLeads = parseInt(document.getElementById('qualifiedLeads').value) || 0;
+            const salesAccepted = parseInt(document.getElementById('salesAccepted').value) || 0;
+            const opportunities = parseInt(document.getElementById('opportunities').value) || 0;
+            const pipelineValue = parseFloat(document.getElementById('pipelineValue').value) || 0;
+            const avgDealSize = parseFloat(document.getElementById('avgDealSize').value) || 0;
+            const winRate = parseFloat(document.getElementById('winRate').value) / 100 || 0;
+            const closedRevenue = parseFloat(document.getElementById('closedRevenue').value) || 0;
+            const salesCycle = parseInt(document.getElementById('salesCycle').value) || 90;
+            const existingCustomers = parseInt(document.getElementById('existingCustomers').value) || 0;
+            const upsellValue = parseFloat(document.getElementById('upsellValue').value) || 0;
+            const partnerValue = parseFloat(document.getElementById('partnerValue').value) || 0;
+
+            // Calculate metrics
+            const showRate = attended / registered;
+            const costPerAttendee = eventCost / attended;
+            const costPerLead = newLeads > 0 ? eventCost / newLeads : 0;
+            const costPerOpp = opportunities > 0 ? eventCost / opportunities : 0;
+            
+            // Revenue calculations
+            const projectedRevenue = pipelineValue * winRate;
+            const totalRevenue = closedRevenue + projectedRevenue;
+            const totalBusinessValue = totalRevenue + upsellValue + partnerValue;
+            
+            // ROI calculations
+            const immediateROI = ((closedRevenue - eventCost) / eventCost) * 100;
+            const projectedROI = ((totalRevenue - eventCost) / eventCost) * 100;
+            const totalROI = ((totalBusinessValue - eventCost) / eventCost) * 100;
+
+            // Display ROI Summary
+            const roiClass = immediateROI > 0 ? 'positive' : 'negative';
+            const projClass = projectedROI > 0 ? 'positive' : 'negative';
+            const totalClass = totalROI > 0 ? 'positive' : 'negative';
+            
+            document.getElementById('roiSummary').innerHTML = `
+                <h3>ROI Summary</h3>
+                <div style="display: flex; justify-content: space-around; text-align: center;">
+                    <div>
+                        <div class="metric-title">Immediate ROI</div>
+                        <div class="metric-value ${roiClass}">${immediateROI.toFixed(0)}%</div>
+                        <div class="help-text">Closed deals only</div>
+                    </div>
+                    <div>
+                        <div class="metric-title">Projected ROI</div>
+                        <div class="metric-value ${projClass}">${projectedROI.toFixed(0)}%</div>
+                        <div class="help-text">Including pipeline</div>
+                    </div>
+                    <div>
+                        <div class="metric-title">Total Business ROI</div>
+                        <div class="metric-value ${totalClass}">${totalROI.toFixed(0)}%</div>
+                        <div class="help-text">All revenue sources</div>
+                    </div>
+                </div>
+            `;
+
+            // Update metric cards
+            document.getElementById('costPerAttendee').textContent = `£${Math.round(costPerAttendee).toLocaleString()}`;
+            document.getElementById('costPerLead').textContent = `£${Math.round(costPerLead).toLocaleString()}`;
+            document.getElementById('costPerOpp').textContent = `£${Math.round(costPerOpp).toLocaleString()}`;
+
+            // Pipeline progression
+            document.getElementById('pipelineChart').innerHTML = `
+                <div class="timeline-item">
+                    <div class="timeline-label">Attended</div>
+                    <div class="timeline-value">${attended}</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-label">New Leads</div>
+                    <div class="timeline-value">${newLeads}</div>
+                    <div class="help-text">${((newLeads/attended)*100).toFixed(0)}% conversion</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-label">Qualified</div>
+                    <div class="timeline-value">${qualifiedLeads}</div>
+                    <div class="help-text">${((qualifiedLeads/newLeads)*100).toFixed(0)}% qualified</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-label">Opportunities</div>
+                    <div class="timeline-value">${opportunities}</div>
+                    <div class="help-text">${((opportunities/qualifiedLeads)*100).toFixed(0)}% to opp</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-label">Projected Wins</div>
+                    <div class="timeline-value">${Math.round(opportunities * winRate)}</div>
+                    <div class="help-text">${(winRate*100).toFixed(0)}% win rate</div>
+                </div>
+            `;
+
+            // Revenue timeline
+            const monthlyRevenue = projectedRevenue / (salesCycle / 30);
+            document.getElementById('revenueTimeline').innerHTML = `
+                <h4>Expected Revenue Flow</h4>
+                <div class="pipeline-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-label">Immediate</div>
+                        <div class="timeline-value">£${closedRevenue.toLocaleString()}</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-label">30 Days</div>
+                        <div class="timeline-value">£${Math.round(monthlyRevenue).toLocaleString()}</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-label">60 Days</div>
+                        <div class="timeline-value">£${Math.round(monthlyRevenue * 2).toLocaleString()}</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-label">${salesCycle} Days</div>
+                        <div class="timeline-value">£${Math.round(projectedRevenue).toLocaleString()}</div>
+                    </div>
+                </div>
+            `;
+
+            // ROI breakdown table
+            document.getElementById('roiBreakdown').innerHTML = `
+                <tr>
+                    <td>Closed Won Revenue</td>
+                    <td>£${closedRevenue.toLocaleString()}</td>
+                    <td>100%</td>
+                    <td>Immediate</td>
+                </tr>
+                <tr>
+                    <td>Pipeline (at ${(winRate*100).toFixed(0)}% win rate)</td>
+                    <td>£${Math.round(projectedRevenue).toLocaleString()}</td>
+                    <td>${(winRate*100).toFixed(0)}%</td>
+                    <td>${salesCycle} days</td>
+                </tr>
+                <tr>
+                    <td>Customer Retention/Upsell</td>
+                    <td>£${upsellValue.toLocaleString()}</td>
+                    <td>70%</td>
+                    <td>6-12 months</td>
+                </tr>
+                <tr>
+                    <td>Partner/Channel Impact</td>
+                    <td>£${partnerValue.toLocaleString()}</td>
+                    <td>50%</td>
+                    <td>6-12 months</td>
+                </tr>
+                <tr style="font-weight: bold; background: #f5f5f5;">
+                    <td>Total Business Value</td>
+                    <td>£${Math.round(totalBusinessValue).toLocaleString()}</td>
+                    <td>-</td>
+                    <td>-</td>
+                </tr>
+            `;
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+            
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetCalculator() {
+            document.getElementById('results').style.display = 'none';
+            window.scrollTo(0, 0);
+        }
+
+        function printResults() {
+            window.print();
+        }
+
+        function copyResults() {
+            const eventCost = document.getElementById('eventCost').value;
+            const attended = document.getElementById('attended').value;
+            const opportunities = document.getElementById('opportunities').value;
+            const roiText = document.querySelector('.metric-value.positive, .metric-value.negative').textContent;
+            
+            const text = `B2B Event ROI Analysis
+Event Cost: £${eventCost}
+Attendees: ${attended}
+Opportunities: ${opportunities}
+Projected ROI: ${roiText}
+
+Generated by Live Group Event ROI Calculator`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Results copied to clipboard!');
+            });
+        }
+
+        // Add input validation
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value < 0) this.value = 0;
+            });
+        });
+    </script>
+</body>
+</html>
