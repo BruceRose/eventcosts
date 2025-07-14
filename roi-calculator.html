@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B2B Event ROI Calculator - Live Group</title>
+    <title>B2B Event Value Calculator - Live Group</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -80,6 +81,9 @@
         }
         .negative {
             color: #d32f2f;
+        }
+        .metric-value.positive {
+            color: #2e7d32;
         }
         .roi-summary {
             background: #e8f5e9;
@@ -169,8 +173,8 @@
 </head>
 <body>
     <div class="calculator">
-        <h1>B2B Event ROI Calculator</h1>
-        <p class="subtitle">Demonstrate the true business value of your B2B events</p>
+        <h1>B2B Event Value Calculator</h1>
+        <p class="subtitle">Demonstrate the true business value and ROI of your B2B events</p>
         
         <div class="section">
             <h2>Event Investment</h2>
@@ -178,7 +182,7 @@
                 <div class="col">
                     <div class="form-group">
                         <label>Total Event Cost (£)</label>
-                        <input type="number" id="eventCost" value="50000" min="1000">
+                        <input type="number" id="eventCost" value="65000" min="1000">
                         <span class="help-text">Include all costs: venue, catering, AV, marketing, staff time</span>
                     </div>
                 </div>
@@ -204,20 +208,20 @@
                 <div class="col">
                     <div class="form-group">
                         <label>Total Registered</label>
-                        <input type="number" id="registered" value="200" min="1">
+                        <input type="number" id="registered" value="250" min="1">
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Actual Attendees</label>
-                        <input type="number" id="attended" value="150" min="1">
+                        <input type="number" id="attended" value="180" min="1">
                         <span class="help-text">Accounts for no-shows</span>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Target Accounts Present</label>
-                        <input type="number" id="targetAccounts" value="25" min="0">
+                        <input type="number" id="targetAccounts" value="35" min="0">
                         <span class="help-text">Key accounts in attendance</span>
                     </div>
                 </div>
@@ -230,20 +234,20 @@
                 <div class="col">
                     <div class="form-group">
                         <label>New Leads Generated</label>
-                        <input type="number" id="newLeads" value="45" min="0">
+                        <input type="number" id="newLeads" value="55" min="0">
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Qualified Leads (MQLs)</label>
-                        <input type="number" id="qualifiedLeads" value="20" min="0">
+                        <input type="number" id="qualifiedLeads" value="25" min="0">
                         <span class="help-text">Marketing qualified</span>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Sales Accepted Leads (SALs)</label>
-                        <input type="number" id="salesAccepted" value="12" min="0">
+                        <input type="number" id="salesAccepted" value="15" min="0">
                         <span class="help-text">Accepted by sales team</span>
                     </div>
                 </div>
@@ -256,20 +260,20 @@
                 <div class="col">
                     <div class="form-group">
                         <label>Opportunities Created</label>
-                        <input type="number" id="opportunities" value="8" min="0">
+                        <input type="number" id="opportunities" value="10" min="0">
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Total Pipeline Value (£)</label>
-                        <input type="number" id="pipelineValue" value="450000" min="0">
+                        <input type="number" id="pipelineValue" value="400000" min="0">
                         <span class="help-text">Sum of all opportunities</span>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Average Deal Size (£)</label>
-                        <input type="number" id="avgDealSize" value="56250" min="0">
+                        <input type="number" id="avgDealSize" value="40000" min="0">
                     </div>
                 </div>
             </div>
@@ -277,15 +281,15 @@
                 <div class="col">
                     <div class="form-group">
                         <label>Win Rate (%)</label>
-                        <input type="number" id="winRate" value="25" min="0" max="100">
+                        <input type="number" id="winRate" value="30" min="0" max="100">
                         <span class="help-text">Historical close rate</span>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Closed Won Revenue (£)</label>
-                        <input type="number" id="closedRevenue" value="0" min="0">
-                        <span class="help-text">Already closed deals</span>
+                        <input type="number" id="closedRevenue" value="15000" min="0">
+                        <span class="help-text">Already closed deals from event</span>
                     </div>
                 </div>
                 <div class="col">
@@ -304,32 +308,32 @@
                 <div class="col">
                     <div class="form-group">
                         <label>Existing Customer Attendees</label>
-                        <input type="number" id="existingCustomers" value="30" min="0">
+                        <input type="number" id="existingCustomers" value="40" min="0">
                         <span class="help-text">For retention/upsell</span>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Upsell/Renewal Influence (£)</label>
-                        <input type="number" id="upsellValue" value="75000" min="0">
+                        <input type="number" id="upsellValue" value="40000" min="0">
                         <span class="help-text">Retention & expansion</span>
                     </div>
                 </div>
                 <div class="col">
                     <div class="form-group">
                         <label>Partner/Channel Value (£)</label>
-                        <input type="number" id="partnerValue" value="50000" min="0">
+                        <input type="number" id="partnerValue" value="20000" min="0">
                         <span class="help-text">Indirect revenue impact</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <button onclick="calculateROI()">Calculate Event ROI</button>
+        <button onclick="calculateROI()">Calculate Event Value & ROI</button>
         <button onclick="resetCalculator()">Reset</button>
 
         <div id="results" class="results">
-            <h2>Event ROI Analysis</h2>
+            <h2>Event Value Analysis</h2>
             
             <div id="roiSummary" class="roi-summary"></div>
             
@@ -365,7 +369,7 @@
             </div>
 
             <div class="chart-container">
-                <h3>ROI Breakdown</h3>
+                <h3>Value Breakdown</h3>
                 <table class="breakdown-table">
                     <thead>
                         <tr>
@@ -380,12 +384,12 @@
             </div>
 
             <div class="info">
-                <strong>How to use these results:</strong><br>
-                • <strong>Immediate ROI</strong> shows return from closed deals only<br>
-                • <strong>Projected ROI</strong> includes pipeline at historical win rates<br>
-                • <strong>Total Business Value</strong> includes customer retention and partner impact<br>
-                • Compare your <strong>Cost Per Lead</strong> to other marketing channels<br>
-                • Track actual vs projected over time to improve accuracy
+                <strong>Understanding B2B Event Value:</strong><br>
+                • <strong>Pipeline Generated</strong> - Shows how many times your pipeline value exceeds event cost (e.g., 6.2x means £6.20 of pipeline for every £1 spent)<br>
+                • <strong>Projected ROI</strong> - The realistic return including pipeline value at your historical win rate<br>
+                • <strong>Total Business Value</strong> - The complete picture including customer retention and partner impact<br>
+                • Most B2B events generate 3-10x pipeline coverage with positive ROI within 3-6 months<br>
+                • Compare your <strong>Cost Per Lead</strong> and <strong>Cost Per Opportunity</strong> to other channels
             </div>
 
             <div style="margin-top: 20px;">
@@ -427,28 +431,29 @@
             const totalRevenue = closedRevenue + projectedRevenue;
             const totalBusinessValue = totalRevenue + upsellValue + partnerValue;
             
+            // Pipeline multiple (how many times the pipeline covers the event cost)
+            const pipelineMultiple = pipelineValue / eventCost;
+            
             // ROI calculations
-            const immediateROI = ((closedRevenue - eventCost) / eventCost) * 100;
             const projectedROI = ((totalRevenue - eventCost) / eventCost) * 100;
             const totalROI = ((totalBusinessValue - eventCost) / eventCost) * 100;
 
             // Display ROI Summary
-            const roiClass = immediateROI > 0 ? 'positive' : 'negative';
             const projClass = projectedROI > 0 ? 'positive' : 'negative';
             const totalClass = totalROI > 0 ? 'positive' : 'negative';
             
             document.getElementById('roiSummary').innerHTML = `
-                <h3>ROI Summary</h3>
+                <h3>Value & ROI Summary</h3>
                 <div style="display: flex; justify-content: space-around; text-align: center;">
                     <div>
-                        <div class="metric-title">Immediate ROI</div>
-                        <div class="metric-value ${roiClass}">${immediateROI.toFixed(0)}%</div>
-                        <div class="help-text">Closed deals only</div>
+                        <div class="metric-title">Pipeline Generated</div>
+                        <div class="metric-value positive">${pipelineMultiple.toFixed(1)}x</div>
+                        <div class="help-text">vs event cost</div>
                     </div>
                     <div>
                         <div class="metric-title">Projected ROI</div>
                         <div class="metric-value ${projClass}">${projectedROI.toFixed(0)}%</div>
-                        <div class="help-text">Including pipeline</div>
+                        <div class="help-text">Pipeline at ${(winRate*100).toFixed(0)}% win rate</div>
                     </div>
                     <div>
                         <div class="metric-title">Total Business ROI</div>
@@ -493,24 +498,30 @@
 
             // Revenue timeline
             const monthlyRevenue = projectedRevenue / (salesCycle / 30);
+            const immediateValue = closedRevenue > 0 ? closedRevenue : 0;
+            
             document.getElementById('revenueTimeline').innerHTML = `
                 <h4>Expected Revenue Flow</h4>
                 <div class="pipeline-timeline">
                     <div class="timeline-item">
+                        <div class="timeline-label">Pipeline Value</div>
+                        <div class="timeline-value positive">£${pipelineValue.toLocaleString()}</div>
+                        <div class="help-text">Total opportunity</div>
+                    </div>
+                    <div class="timeline-item">
                         <div class="timeline-label">Immediate</div>
-                        <div class="timeline-value">£${closedRevenue.toLocaleString()}</div>
+                        <div class="timeline-value">£${immediateValue.toLocaleString()}</div>
+                        <div class="help-text">Closed to date</div>
                     </div>
                     <div class="timeline-item">
                         <div class="timeline-label">30 Days</div>
-                        <div class="timeline-value">£${Math.round(monthlyRevenue).toLocaleString()}</div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-label">60 Days</div>
-                        <div class="timeline-value">£${Math.round(monthlyRevenue * 2).toLocaleString()}</div>
+                        <div class="timeline-value">£${Math.round(immediateValue + monthlyRevenue).toLocaleString()}</div>
+                        <div class="help-text">Expected total</div>
                     </div>
                     <div class="timeline-item">
                         <div class="timeline-label">${salesCycle} Days</div>
-                        <div class="timeline-value">£${Math.round(projectedRevenue).toLocaleString()}</div>
+                        <div class="timeline-value positive">£${Math.round(immediateValue + projectedRevenue).toLocaleString()}</div>
+                        <div class="help-text">Full cycle value</div>
                     </div>
                 </div>
             `;
@@ -518,25 +529,31 @@
             // ROI breakdown table
             document.getElementById('roiBreakdown').innerHTML = `
                 <tr>
-                    <td>Closed Won Revenue</td>
-                    <td>£${closedRevenue.toLocaleString()}</td>
-                    <td>100%</td>
-                    <td>Immediate</td>
+                    <td>Pipeline Generated</td>
+                    <td>£${pipelineValue.toLocaleString()}</td>
+                    <td>Active</td>
+                    <td>${opportunities} opportunities</td>
                 </tr>
                 <tr>
-                    <td>Pipeline (at ${(winRate*100).toFixed(0)}% win rate)</td>
+                    <td>Expected from Pipeline (at ${(winRate*100).toFixed(0)}% win rate)</td>
                     <td>£${Math.round(projectedRevenue).toLocaleString()}</td>
                     <td>${(winRate*100).toFixed(0)}%</td>
-                    <td>${salesCycle} days</td>
+                    <td>${salesCycle} days avg</td>
                 </tr>
                 <tr>
-                    <td>Customer Retention/Upsell</td>
+                    <td>Already Closed Revenue</td>
+                    <td>£${closedRevenue.toLocaleString()}</td>
+                    <td>100%</td>
+                    <td>Realized</td>
+                </tr>
+                <tr>
+                    <td>Customer Retention/Upsell Impact</td>
                     <td>£${upsellValue.toLocaleString()}</td>
                     <td>70%</td>
                     <td>6-12 months</td>
                 </tr>
                 <tr>
-                    <td>Partner/Channel Impact</td>
+                    <td>Partner/Channel Influence</td>
                     <td>£${partnerValue.toLocaleString()}</td>
                     <td>50%</td>
                     <td>6-12 months</td>
@@ -569,15 +586,17 @@
             const eventCost = document.getElementById('eventCost').value;
             const attended = document.getElementById('attended').value;
             const opportunities = document.getElementById('opportunities').value;
-            const roiText = document.querySelector('.metric-value.positive, .metric-value.negative').textContent;
+            const pipelineValue = document.getElementById('pipelineValue').value;
+            const projectedROI = document.querySelectorAll('.roi-summary .metric-value')[1].textContent;
             
-            const text = `B2B Event ROI Analysis
+            const text = `B2B Event Value Analysis
 Event Cost: £${eventCost}
 Attendees: ${attended}
 Opportunities: ${opportunities}
-Projected ROI: ${roiText}
+Pipeline Generated: £${pipelineValue}
+Projected ROI: ${projectedROI}
 
-Generated by Live Group Event ROI Calculator`;
+Generated by Live Group Event Value Calculator`;
             
             navigator.clipboard.writeText(text).then(() => {
                 alert('Results copied to clipboard!');
