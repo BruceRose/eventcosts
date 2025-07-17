@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envoku - Turn Events Into Revenue-Driving Experiences</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #ffffff;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #6366f1;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: #6366f1;
+        }
+        
+        .cta-button {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #1e293b 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 3rem 0;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #6366f1;
+            display: block;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        .cta-section {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .cta-secondary {
+            background: transparent;
+            color: #6366f1;
+            border: 2px solid #6366f1;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .cta-secondary:hover {
+            background: #6366f1;
+            color: white;
+        }
+        
+        /* Problem Section */
+        .problem {
+            padding: 80px 0;
+            background: #ffffff;
+        }
+        
+        .problem h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #1e293b;
+        }
+        
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .problem-card {
+            background: #f8fafc;
+            padding: 2rem;
+            border-radius: 12px;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .problem-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+        
+        .problem-card p {
+            color: #64748b;
+        }
+        
+        /* Solution Section */
+        .solution {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+        
+        .solution h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .solution-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .solution-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .solution-card p {
+            opacity: 0.9;
+        }
+        
+        /* How It Works */
+        .how-it-works {
+            padding: 80px 0;
+            background: #f8fafc;
+        }
+        
+        .how-it-works h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #1e293b;
+        }
+        
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .process-step {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            position: relative;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1rem;
+        }
+        
+        .process-step h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+        
+        .process-step p {
+            color: #64748b;
+            line-height: 1.6;
+        }
+        
+        /* Social Proof */
+        .social-proof {
+            padding: 80px 0;
+            background: #f8fafc;
+        }
+        
+        .social-proof h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #1e293b;
+        }
+        
+        .testimonials {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+        
+        .testimonial {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .testimonial p {
+            font-style: italic;
+            margin-bottom: 1rem;
+            color: #374151;
+        }
+        
+        .testimonial-author {
+            font-weight: 600;
+            color: #6366f1;
+        }
+        
+        .testimonial-role {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        /* Final CTA */
+        .final-cta {
+            padding: 80px 0;
+            background: #1e293b;
+            color: white;
+            text-align: center;
+        }
+        
+        .final-cta h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .final-cta p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta-white {
+            background: white;
+            color: #1e293b;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .cta-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Footer */
+        footer {
+            background: #0f172a;
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .cta-section {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">Envoku</div>
+            <ul class="nav-links">
+                <li><a href="#solutions">Solutions</a></li>
+                <li><a href="#case-studies">Case Studies</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#resources">Resources</a></li>
+            </ul>
+            <a href="#demo" class="cta-button">Get Demo</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Turn Events Into Revenue-Driving Experiences</h1>
+            <p class="subtitle">Stop guessing what your audience wants. Our AI-powered personalization platform increases event ROI by 47% through hyper-targeted attendee experiences.</p>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">47%</span>
+                    <span class="stat-label">Average ROI Increase</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">89%</span>
+                    <span class="stat-label">Attendee Satisfaction</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">3x</span>
+                    <span class="stat-label">More Meaningful Connections</span>
+                </div>
+            </div>
+            
+            <div class="cta-section">
+                <a href="#demo" class="cta-button">See 5-Minute Demo</a>
+                <a href="#case-study" class="cta-secondary">Read BDO Case Study</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="problem">
+        <div class="container">
+            <h2>Generic Events Are Killing Your ROI</h2>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <h3>87% of attendees feel disconnected</h3>
+                    <p>One-size-fits-all content leaves most of your audience disengaged, reducing the value they get from your investment.</p>
+                </div>
+                <div class="problem-card">
+                    <h3>Poor networking wastes opportunities</h3>
+                    <p>Random connections lead to missed deals, partnerships, and meaningful professional relationships.</p>
+                </div>
+                <div class="problem-card">
+                    <h3>You're flying blind on what works</h3>
+                    <p>Without personalization data, you can't optimize future events or prove ROI to stakeholders.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="solution">
+        <div class="container">
+            <h2>The Envoku Difference: Psychology-Driven Personalization</h2>
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <h3>AudienceDNA Profiling</h3>
+                    <p>Our proprietary system analyzes communication styles, learning preferences, and networking goals to create detailed attendee profiles. Know if someone prefers visual content over text, thrives in small groups, or needs quiet spaces to process information.</p>
+                </div>
+                <div class="solution-card">
+                    <h3>Smart Content Delivery</h3>
+                    <p>Automatically serve personalized agendas, on-demand content, and tailored formats. Visual learners get infographics, auditory learners get podcasts, and kinesthetic learners get interactive workshops - all delivered through their preferred channels.</p>
+                </div>
+                <div class="solution-card">
+                    <h3>Intelligent Networking</h3>
+                    <p>AI-powered matching connects attendees based on shared interests, complementary skills, and business goals. Whether they prefer cocktail networking, structured meetings, or online chats, we facilitate meaningful connections in their comfort zone.</p>
+                </div>
+                <div class="solution-card">
+                    <h3>Seamless Integration</h3>
+                    <p>Connect your existing HRIS, LMS, and communication systems into one unified platform. Eliminate data silos and create personalized experiences across all touchpoints without changing your current tech stack.</p>
+                </div>
+                <div class="solution-card">
+                    <h3>Adaptive Communication</h3>
+                    <p>Deliver messages through each person's preferred channels - email, social media, or in-app notifications. Timing, tone, and format automatically adjust based on individual communication preferences and time zones.</p>
+                </div>
+                <div class="solution-card">
+                    <h3>Real-Time Optimization</h3>
+                    <p>Live analytics track engagement patterns and automatically adjust content delivery, networking suggestions, and communication timing. See what's working and optimize on the fly with actionable insights.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How It Works: From Registration to Results</h2>
+            <div class="process-grid">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <h3>Profile Creation</h3>
+                    <p>Attendees complete a brief psychological assessment during registration, revealing their communication style, learning preferences, networking comfort level, and content interests.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <h3>Automatic Personalization</h3>
+                    <p>Our AI instantly creates custom agendas, suggests relevant sessions, and pre-matches networking opportunities based on each individual's AudienceDNA profile.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <h3>Dynamic Experience</h3>
+                    <p>Throughout the event, content adapts in real-time. Introverts get quiet networking spaces, visual learners see infographics, and busy executives get condensed summaries.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">4</div>
+                    <h3>Measurable Impact</h3>
+                    <p>Track engagement, connection quality, and business outcomes with detailed analytics. See exactly which personalization strategies drove the highest ROI.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+        <div class="container">
+            <h2>Trusted by Industry Leaders</h2>
+            <div class="testimonials">
+                <div class="testimonial">
+                    <p>"AudienceDNA allowed us to respond to different learning styles and helped our speakers build the right content. The hybrid engagement approach was optimized from day one."</p>
+                    <div class="testimonial-author">Julia Johnson</div>
+                    <div class="testimonial-role">Global Brand & Marketing Director, BDO</div>
+                </div>
+                <div class="testimonial">
+                    <p>"Envoku connects HR, learning, and internal comms systems while personalizing experiences based on employee profiles. This enables a coherent engagement strategy we've never had before."</p>
+                    <div class="testimonial-author">Andy Brown</div>
+                    <div class="testimonial-role">Former L&D Manager, The Royal Household</div>
+                </div>
+                <div class="testimonial">
+                    <p>"Personalization is no longer optional—it's key to fostering inclusivity where every attendee feels understood. This is the most powerful trend in event technology today."</p>
+                    <div class="testimonial-author">Adam Parry</div>
+                    <div class="testimonial-role">Co-Founder, Event Tech Live</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="final-cta">
+        <div class="container">
+            <h2>Ready to Transform Your Events?</h2>
+            <p>Join 500+ event professionals who've increased their ROI with Envoku</p>
+            <a href="#demo" class="cta-white">Book Your Strategy Call</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo">Envoku</div>
+                <div class="footer-links">
+                    <a href="#privacy">Privacy Policy</a>
+                    <a href="#terms">Terms of Service</a>
+                    <a href="#contact">Contact</a>
+                </div>
+                <p>&copy; 2025 Envoku. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
