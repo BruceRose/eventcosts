@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Team Building Generator – Create Your Perfect Team Activity</title>
+  <meta name="description" content="Answer a few quick questions to get customised team-building activities for your team's needs." />
+  <style>
+    /* --- CSS reset-ish --- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; } 
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; line-height: 1.6; }
+
+    :root {
+      --primary: #d7414f;
+      --primary-dark: #b53542;
+      --primary-light: #e85563;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+    }
+
+    body {
+      color: var(--dark);
+      background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #fff5f5 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container { max-width: 900px; margin-inline: auto; }
+
+    header { text-align: center; margin-block-end: 50px; }
+    header h1 { font-size: 2.5rem; margin: 0 0 15px; color: var(--dark); }
+    header p { color: var(--gray); font-size: 1.1rem; margin: 0; }
+
+    main {
+      background: #fff;
+      border-radius: 20px;
+      padding: 50px 40px;
+      box-shadow: 0 20px 60px rgba(215, 65, 79, 0.1);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #f0f0f0;
+    }
+    /* Radial dot accent like original */
+    main::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(215, 65, 79, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+
+    /* Form layout */
+    form { display: grid; gap: 25px; position: relative; z-index: 1; }
+    fieldset {
+      border: 1px solid #f0f0f0;
+      border-radius: 15px;
+      padding: 30px;
+      background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    fieldset:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(215, 65, 79, 0.08); }
+    legend { font-weight: 600; padding: 0 6px; display: flex; align-items: center; gap: 12px; font-size: 1.1rem; }
+
+    .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-block-start: 10px; }
+
+    .option-btn { 
+      border: 2px solid #e2e8f0; background: #fff; color: inherit; text-align: left; 
+      padding: 14px 20px; border-radius: 12px; cursor: pointer; transition: all .3s ease; position: relative; overflow: hidden;
+      font-size: .95rem;
+    }
+    .option-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(215,65,79,.1), transparent); transition: left .5s; }
+    .option-btn:hover::before { left: 100%; }
+    .option-btn:hover { border-color: var(--primary); background: #fff5f5; transform: translateX(5px); }
+    .option-btn[aria-pressed="true"] { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+    .option-emoji { margin-inline-end: .5rem; }
+
+    .slider-row { margin-block-start: 15px; display: grid; gap: 12px; }
+    .range-wrap { display: grid; align-items: center; grid-template-columns: 1fr auto; gap: .75rem; }
+    input[type="range"] { width: 100%; height: 8px; border-radius: 5px; background: #f0f0f0; appearance: none; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); box-shadow: 0 2px 8px rgba(215,65,79,.3); transition: all .3s ease; }
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); box-shadow: 0 0 15px rgba(215,65,79,.5); }
+    input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; border: none; border-radius: 50%; background: var(--primary); box-shadow: 0 2px 8px rgba(215,65,79,.3); transition: all .3s ease; }
+
+    .value-pill { font-weight: 600; color: var(--primary); font-size: 1rem; }
+
+    .actions { display: grid; place-items: center; margin-block-start: 50px; }
+    .btn-primary { 
+      display: inline-block; border: 0; border-radius: 50px; padding: 18px 60px; font-weight: 600; cursor: pointer; 
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; letter-spacing: .5px; 
+      box-shadow: 0 15px 40px rgba(215, 65, 79, .25); transition: transform .3s; position: relative; overflow: hidden;
+    }
+    .btn-primary::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,.3); transform: translate(-50%,-50%); transition: width .5s, height .5s; }
+    .btn-primary:hover::before { width: 300px; height: 300px; }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(215, 65, 79, 0.25); }
+    .btn-primary:active { transform: translateY(-1px); }
+
+    /* Results */
+    .results { display: none; margin-block-start: 50px; position: relative; z-index: 1; }
+    .results[data-active="true"] { display: block; animation: fadeIn .6s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .results-header { text-align: center; margin-bottom: 40px; }
+    .results-header h2 { font-size: 2rem; color: var(--dark); margin: 0 0 10px; }
+    .results-header p { color: var(--gray); font-size: 1.05rem; margin: 0; }
+
+    .card { background: #fff; border-radius: 15px; padding: 35px; margin-bottom: 25px; border-left: 5px solid var(--primary); box-shadow: 0 8px 25px rgba(0,0,0,0.06); transition: all .3s ease; position: relative; overflow: hidden; }
+    .card::after { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(215, 65, 79, 0.05) 0%, transparent 70%); border-radius: 50%; transform: translate(30%, -30%); }
+    .card:hover { transform: translateX(10px); box-shadow: 0 15px 40px rgba(215, 65, 79, 0.12); }
+
+    .card h3 { display: flex; align-items: center; gap: 12px; margin: 0 0 15px; color: var(--primary); font-size: 1.6rem; }
+    .muted { color: var(--gray); line-height: 1.8; font-size: 1.05rem; }
+
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px; padding-top: 25px; border-top: 1px solid #f0f0f0; }
+    .detail { display: flex; align-items: flex-start; gap: 10px; color: var(--dark); }
+    .detail .icon { width: 24px; height: 24px; border-radius: 50%; background: #fff5f5; display: flex; align-items: center; justify-content: center; font-size: .9rem; flex-shrink: 0; margin-top: 2px; }
+
+    .guide { background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); border-radius: 15px; padding: 40px; margin-top: 40px; border: 1px solid rgba(215, 65, 79, 0.1); }
+    .guide h3 { font-size: 1.6rem; margin: 0 0 25px; display: flex; align-items: center; gap: 10px; }
+    .steps { display: grid; gap: 15px; }
+    .step { display: flex; gap: 15px; padding: 18px; background: #fff; border-radius: 12px; transition: all .3s ease; align-items: center; border: 1px solid var(--border); }
+    .step:hover { transform: translateX(8px); box-shadow: 0 5px 20px rgba(215, 65, 79, 0.08); }
+    .step .no { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; font-weight: 700; font-size: .95rem; }
+
+    .download { background: var(--success); color: #fff; border: 0; border-radius: 10px; padding: 14px 35px; cursor: pointer; transition: all .3s ease; margin-top: 25px; font-weight: 600; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(16,185,129,.25); }
+    .download:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,.25); }
+
+    /* Focus visibility for keyboard users */
+    :where(button, [href], input):focus-visible { outline: 3px solid rgba(215, 65, 79, 0.3); outline-offset: 2px; }
+
+    @media (max-width: 768px) {
+      main { padding: 30px 20px; }
+      header h1 { font-size: 1.8rem; }
+      .options-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Your Personalised Team Building Generator</h1>
+      <p>Answer a few quick questions to get customised activities designed for your team's needs.</p>
+    </header>
+
+    <main>
+      <!-- Use a real form for semantics & accessibility -->
+      <form id="generator" novalidate>
+        <fieldset>
+          <legend>1. What's your main team challenge?</legend>
+          <div class="options-grid" role="group" aria-label="Main team challenge">
+            <button type="button" class="option-btn" data-category="challenge" data-value="communication" aria-pressed="false"><span class="option-emoji" aria-hidden="true">📢</span>Communication barriers</button>
+            <button type="button" class="option-btn" data-category="challenge" data-value="silos" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🏢</span>Department silos</button>
+            <button type="button" class="option-btn" data-category="challenge" data-value="morale" aria-pressed="false"><span class="option-emoji" aria-hidden="true">😊</span>Low morale</button>
+            <button type="button" class="option-btn" data-category="challenge" data-value="trust" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🤝</span>Trust issues</button>
+            <button type="button" class="option-btn" data-category="challenge" data-value="innovation" aria-pressed="false"><span class="option-emoji" aria-hidden="true">💡</span>Lack of innovation</button>
+            <button type="button" class="option-btn" data-category="challenge" data-value="remote" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🌍</span>Remote disconnect</button>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>2. How many people are in your team?</legend>
+          <div class="slider-row">
+            <label class="range-wrap">
+              <input type="range" id="teamSize" name="teamSize" min="5" max="200" value="25" aria-describedby="sizeHelp" />
+              <output id="sizeDisplay" class="value-pill" for="teamSize">25 people</output>
+            </label>
+            <div id="sizeHelp" class="muted" aria-hidden="true">5 people — 200+ people</div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>3. What format works best for you?</legend>
+          <div class="options-grid" role="group" aria-label="Preferred format">
+            <button type="button" class="option-btn" data-category="format" data-value="inperson" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🏢</span>In‑person</button>
+            <button type="button" class="option-btn" data-category="format" data-value="virtual" aria-pressed="false"><span class="option-emoji" aria-hidden="true">💻</span>Virtual</button>
+            <button type="button" class="option-btn" data-category="format" data-value="hybrid" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🔄</span>Hybrid</button>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>4. Budget per person?</legend>
+          <div class="slider-row">
+            <label class="range-wrap">
+              <input type="range" id="budget" name="budget" min="10" max="500" value="50" aria-describedby="budgetHelp" />
+              <output id="budgetDisplay" class="value-pill" for="budget">£50</output>
+            </label>
+            <div id="budgetHelp" class="muted" aria-hidden="true">£10 — £500+</div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>5. Which company value do you want to reinforce?</legend>
+          <div class="options-grid" role="group" aria-label="Company value to reinforce">
+            <button type="button" class="option-btn" data-category="value" data-value="innovation" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🚀</span>Innovation</button>
+            <button type="button" class="option-btn" data-category="value" data-value="collaboration" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🤝</span>Collaboration</button>
+            <button type="button" class="option-btn" data-category="value" data-value="customer" aria-pressed="false"><span class="option-emoji" aria-hidden="true">👥</span>Customer focus</button>
+            <button type="button" class="option-btn" data-category="value" data-value="sustainability" aria-pressed="false"><span class="option-emoji" aria-hidden="true">🌱</span>Sustainability</button>
+            <button type="button" class="option-btn" data-category="value" data-value="excellence" aria-pressed="false"><span class="option-emoji" aria-hidden="true">⭐</span>Excellence</button>
+            <button type="button" class="option-btn" data-category="value" data-value="purpose" aria-pressed="false"><span class="option-emoji" aria-hidden="true">❤️</span>Social impact</button>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="button" id="generate" class="btn-primary">Generate my team‑building plan</button>
+        </div>
+      </form>
+
+      <section id="results" class="results" aria-live="polite" aria-atomic="true">
+        <div class="results-header">
+          <h2>Your tailored team‑building activities</h2>
+          <p class="muted">Here are your recommended activities based on your selections.</p>
+        </div>
+        <div id="resultsContent" class="cards"></div>
+
+        <div class="guide" id="guide" hidden>
+          <h3>📋 Your implementation guide</h3>
+          <div class="steps" id="guideSteps"></div>
+          <button type="button" id="download" class="download">📥 Download complete planning guide</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    // --- State ---
+    const selections = {
+      challenge: null,
+      teamSize: 25,
+      format: null,
+      budget: 50,
+      value: null,
+    };
+
+    // --- Data ---
+    const activities = {
+      communication: {
+        inperson: [
+          {
+            title: "Escape Room Challenge",
+            description:
+              "Teams must communicate clearly and work together to solve puzzles and escape within a time limit. This high‑pressure environment naturally improves communication patterns and active listening skills.",
+            duration: "2–3 hours",
+            bestFor: "Teams of 4–8",
+            outcome:
+              "Improved communication patterns, better active listening, clearer instruction‑giving",
+          },
+          {
+            title: "Collaborative Building Project",
+            description:
+              "Teams build prosthetic hands or bikes for charity, requiring clear instructions and coordination between sub‑teams. Combines skill‑building with meaningful social impact.",
+            duration: "Half day",
+            bestFor: "Teams of 10–30",
+            outcome:
+              "Enhanced communication skills, social impact, team bonding through purpose",
+          },
+        ],
+        virtual: [
+          {
+            title: "Virtual Escape Room Experience",
+            description:
+              "Online puzzle‑solving adventure requiring clear digital communication and screen‑sharing coordination. Perfect for distributed teams to practise virtual collaboration.",
+            duration: "1–2 hours",
+            bestFor: "Teams of 4–6",
+            outcome: "Better virtual communication habits, improved digital collaboration",
+          },
+          {
+            title: "Digital Storytelling Workshop",
+            description:
+              "Teams collaborate to create a story, with each member contributing sequentially. Focuses on listening, building on others' ideas, and clear expression.",
+            duration: "90 minutes",
+            bestFor: "Teams of 5–15",
+            outcome:
+              "Improved listening skills, better communication flow, creative collaboration",
+          },
+        ],
+      },
+      silos: {
+        inperson: [
+          {
+            title: "Cross‑Functional Hackathon",
+            description:
+              "Mixed department teams work intensively on solving real business challenges, leveraging diverse skills and perspectives from across the organisation.",
+            duration: "1–2 days",
+            bestFor: "Multiple departments",
+            outcome:
+              "Broken silos, new cross‑functional relationships, innovative solutions",
+          },
+          {
+            title: "Amazing Race City Challenge",
+            description:
+              "Mixed teams navigate city checkpoints, with challenges requiring different departmental expertise at each stop. Natural mingling in an exciting format.",
+            duration: "Half day",
+            bestFor: "20–100 people",
+            outcome:
+              "Natural collaboration across departments, new connections, shared experiences",
+          },
+        ],
+        virtual: [
+          {
+            title: "Virtual Business Simulation",
+            description:
+              "Online simulation where mixed teams run a virtual company, requiring input from all functional areas to succeed. Builds understanding of interdependencies.",
+            duration: "2–4 hours",
+            bestFor: "15–50 people",
+            outcome:
+              "Understanding of other departments' challenges, improved collaboration",
+          },
+        ],
+      },
+      morale: {
+        inperson: [
+          {
+            title: "Team Celebration Olympics",
+            description:
+              "Fun, light‑hearted competitions celebrating team achievements with games, awards, and recognition. Focus on fun and acknowledging successes.",
+            duration: "Half day",
+            bestFor: "Any size team",
+            outcome: "Boosted morale, strengthened team spirit, celebration of achievements",
+          },
+          {
+            title: "Cooking Competition Experience",
+            description:
+              "Teams compete in a fun culinary challenge, creating dishes together in a relaxed, social atmosphere. Perfect for building connections over food.",
+            duration: "3–4 hours",
+            bestFor: "Teams of 10–40",
+            outcome: "Increased morale, social bonding, memorable shared experience",
+          },
+        ],
+        virtual: [
+          {
+            title: "Virtual Game Show Spectacular",
+            description:
+              "Custom online game show celebrating team knowledge, inside jokes, and achievements. Brings remote teams together for fun and recognition.",
+            duration: "1–2 hours",
+            bestFor: "Any size team",
+            outcome:
+              "Improved morale, team recognition, shared laughter and fun",
+          },
+        ],
+      },
+      trust: {
+        inperson: [
+          {
+            title: "Trust & Vulnerability Workshop",
+            description:
+              "Professionally facilitated session with trust‑building exercises and structured sharing to deepen connections and psychological safety.",
+            duration: "Half day",
+            bestFor: "Teams of 5–15",
+            outcome: "Deeper trust, psychological safety, stronger team bonds",
+          },
+          {
+            title: "Outdoor Challenge Course",
+            description:
+              "Physical challenges requiring team members to rely on each other for safety and success. Builds trust through interdependence.",
+            duration: "Full day",
+            bestFor: "Teams of 8–20",
+            outcome:
+              "Built trust through interdependence, conquered challenges together",
+          },
+        ],
+        virtual: [
+          {
+            title: "Virtual Trust Circle Sessions",
+            description:
+              "Structured online sessions with breakout rooms for pair sharing and team trust exercises. Creates safe space for remote connection.",
+            duration: "2 hours",
+            bestFor: "Teams of 5–12",
+            outcome:
+              "Increased trust in virtual environment, deeper remote relationships",
+          },
+        ],
+      },
+      innovation: {
+        inperson: [
+          {
+            title: "Design Thinking Workshop",
+            description:
+              "Interactive workshop using design‑thinking methods to solve real business challenges creatively. Hands‑on innovation training.",
+            duration: "Full day",
+            bestFor: "Teams of 10–30",
+            outcome: "Innovation mindset, practical new solutions, creative confidence",
+          },
+          {
+            title: "Innovation Hackathon",
+            description:
+              "Intensive session where teams rapidly prototype new ideas with immediate feedback and iteration. Fast‑paced creative problem‑solving.",
+            duration: "1–2 days",
+            bestFor: "Teams of 15–50",
+            outcome:
+              "Tangible innovative solutions, rapid prototyping skills, creative energy",
+          },
+        ],
+        virtual: [
+          {
+            title: "Virtual Brainstorm Marathon",
+            description:
+              "Structured online ideation using digital collaboration tools and creative techniques. Generates fresh ideas despite distance.",
+            duration: "3 hours",
+            bestFor: "Teams of 5–20",
+            outcome: "Fresh ideas, innovation culture, creative collaboration skills",
+          },
+        ],
+      },
+      remote: {
+        virtual: [
+          {
+            title: "Virtual Coffee Roulette Programme",
+            description:
+              "Regular randomised coffee chats between remote team members to build connections. Simple but effective for ongoing relationship building.",
+            duration: "30 min weekly",
+            bestFor: "Any size team",
+            outcome:
+              "Stronger remote relationships, reduced isolation, team cohesion",
+          },
+          {
+            title: "Online Team Quest Adventure",
+            description:
+              "Multi‑week virtual adventure where remote team members complete challenges together. Ongoing engagement and team building.",
+            duration: "4 weeks",
+            bestFor: "Teams of 10–50",
+            outcome: "Connected remote culture, sustained engagement, shared achievement",
+          },
+        ],
+        hybrid: [
+          {
+            title: "Hybrid Scavenger Hunt",
+            description:
+              "Simultaneous challenges for office and remote workers, collaborating across locations. Bridges the gap between remote and in‑office teams.",
+            duration: "2 hours",
+            bestFor: "Mixed teams",
+            outcome:
+              "Unified hybrid team culture, inclusive collaboration, location flexibility",
+          },
+        ],
+      },
+    };
+
+    // --- Helpers ---
+    const qs = (sel, el = document) => el.querySelector(sel);
+    const qsa = (sel, el = document) => Array.from(el.querySelectorAll(sel));
+
+    function setPressedWithinGroup(button) {
+      const { category } = button.dataset;
+      const groupButtons = qsa(`.option-btn[data-category="${category}"]`);
+      groupButtons.forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+    }
+
+    function validateSelections() {
+      const required = ['challenge', 'format', 'value'];
+      return required.every(key => Boolean(selections[key]));
+    }
+
+    // --- UI bindings (event delegation; no globals) ---
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.option-btn');
+      if (!btn) return;
+      const { category, value } = btn.dataset;
+      selections[category] = value;
+      setPressedWithinGroup(btn);
+    });
+
+    qs('#teamSize').addEventListener('input', (e) => {
+      selections.teamSize = Number(e.target.value);
+      qs('#sizeDisplay').value = `${e.target.value} people`;
+    });
+
+    qs('#budget').addEventListener('input', (e) => {
+      selections.budget = Number(e.target.value);
+      qs('#budgetDisplay').value = `£${e.target.value}`;
+    });
+
+    // --- Generate ---
+    qs('#generate').addEventListener('click', () => {
+      if (!validateSelections()) {
+        alert('Please answer all questions to get your personalised recommendations.');
+        return;
+      }
+
+      const challengeActivities = activities[selections.challenge] ?? {};
+      let recommended = [];
+      if (selections.format === 'hybrid') {
+        recommended = [
+          ...(challengeActivities.inperson ?? []).slice(0, 1),
+          ...(challengeActivities.virtual ?? []).slice(0, 1),
+          ...(challengeActivities.hybrid ?? []),
+        ];
+      } else {
+        recommended = challengeActivities[selections.format] ?? [];
+      }
+
+      const icons = ['🎯', '🚀', '💡'];
+      const cardsHTML = recommended.map((a, i) => `
+        <article class="card">
+          <h3><span aria-hidden="true">${icons[i] ?? '🎯'}</span>${a.title}</h3>
+          <p class="muted">${a.description}</p>
+          <div class="detail-grid">
+            <div class="detail"><div class="icon" aria-hidden="true">⏱️</div><div><strong>Duration:</strong> ${a.duration}</div></div>
+            <div class="detail"><div class="icon" aria-hidden="true">👥</div><div><strong>Best for:</strong> ${a.bestFor}</div></div>
+            <div class="detail"><div class="icon" aria-hidden="true">✨</div><div><strong>Expected outcome:</strong> ${a.outcome}</div></div>
+          </div>
+        </article>
+      `).join('');
+
+      qs('#resultsContent').innerHTML = cardsHTML;
+      const results = qs('#results');
+      results.dataset.active = 'true';
+
+      // Build implementation guide
+      const steps = [
+        `Define clear objectives aligned with your “${selections.value}” company value`,
+        `Set a date and book ${selections.format === 'virtual' ? 'your technology platform' : selections.format === 'hybrid' ? 'a venue and technology' : 'a venue'} for your ${selections.format} format`,
+        `Communicate purpose and agenda to your ${selections.teamSize} team members`,
+        `Prepare materials and activities within your £${selections.budget} per‑person budget`,
+        `Facilitate with energy, ensuring everyone participates and feels included`,
+        `Debrief the experience to capture learnings and insights`,
+        `Follow up within 48 hours with photos, key takeaways, and action items`,
+        `Schedule regular activities to maintain momentum and build on progress`,
+      ];
+
+      qs('#guideSteps').innerHTML = steps
+        .map((t, i) => `<div class="step"><div class="no">${i + 1}</div><div>${t}</div></div>`) 
+        .join('');
+
+      qs('#guide').hidden = false;
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // --- Download ---
+    qs('#download').addEventListener('click', () => {
+      const titles = qsa('#resultsContent h3').map(h => h.textContent?.trim() ?? '').filter(Boolean);
+      const stepLines = qsa('#guideSteps .step').map((el, i) => `${i + 1}. ${el.textContent?.replace(/^\d+\s*/, '')}`);
+
+      const content = `TEAM BUILDING PLANNING GUIDE\n\nTeam Challenge: ${selections.challenge}\nTeam Size: ${selections.teamSize} people\nFormat: ${selections.format}\nBudget: £${selections.budget} per person\nValue Focus: ${selections.value}\n\nYOUR RECOMMENDED ACTIVITIES:\n${titles.join('\n')}\n\nIMPLEMENTATION STEPS:\n${stepLines.join('\n')}\n\nNEXT STEPS:\n- Review activities with your team\n- Select preferred date and time\n- Book venue or technology platform\n- Send calendar invitations\n- Prepare materials and facilitation plan\n- Run the activity with enthusiasm\n- Capture feedback and iterate\n\nRemember: Tailored team building supports stronger performance across morale, collaboration and innovation.`;
+
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'team-building-guide.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
