@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Venue Selector – Find Your Perfect Event Space</title>
+  <meta name="description" content="Answer a few questions to find the perfect venue type for your event." />
+  <style>
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; line-height: 1.6; }
+
+    :root {
+      --primary: #d7414f;
+      --primary-dark: #b53542;
+      --primary-light: #e85563;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --gray: #64748b;
+      --success: #10b981;
+    }
+
+    body {
+      color: var(--dark);
+      background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #fff5f5 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .selector-section {
+      background: white;
+      border-radius: 20px;
+      padding: 50px 40px;
+      box-shadow: 0 20px 60px rgba(215, 65, 79, 0.1);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #f0f0f0;
+    }
+
+    .selector-section::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(215, 65, 79, 0.03) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+    }
+
+    .selector-title {
+      text-align: center; /* fixed from centre */
+      font-size: 2.5rem;
+      margin-bottom: 15px;
+      color: var(--dark);
+      position: relative;
+    }
+
+    .selector-subtitle {
+      text-align: center; /* fixed from centre */
+      color: var(--gray);
+      margin-bottom: 50px;
+      font-size: 1.1rem;
+      position: relative;
+    }
+
+    .question-card {
+      background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 25px;
+      border: 1px solid #f0f0f0;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .question-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(215, 65, 79, 0.08); }
+
+    .question-label {
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center; /* fixed from centre */
+      gap: 12px;
+      font-size: 1.1rem;
+    }
+
+    .question-number {
+      background: var(--primary);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center; /* fixed from centre */
+      justify-content: center; /* fixed from centre */
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+
+    .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .options-grid.three-col { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+
+    .option-btn {
+      background: white; border: 2px solid #e2e8f0; padding: 14px 20px; border-radius: 12px; cursor: pointer;
+      transition: all 0.3s ease; font-size: 0.95rem; text-align: left; position: relative; overflow: hidden;
+    }
+    .option-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(215, 65, 79, 0.1), transparent); transition: left 0.5s; }
+    .option-btn:hover::before { left: 100%; }
+    .option-btn:hover { border-color: var(--primary); background: #fff5f5; transform: translateX(5px); }
+    .option-btn.selected { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
+
+    .slider-container { margin-top: 15px; }
+    .slider { width: 100%; height: 8px; border-radius: 5px; background: #f0f0f0; outline: none; -webkit-appearance: none; appearance: none; cursor: pointer; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(215, 65, 79, 0.3); }
+    .slider::-webkit-slider-thumb:hover { transform: scale(1.2); box-shadow: 0 0 15px rgba(215, 65, 79, 0.5); }
+    .slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: all 0.3s ease; border: none; box-shadow: 0 2px 8px rgba(215, 65, 79, 0.3); }
+
+    .slider-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 0.9rem; color: var(--gray); }
+    .slider-value { color: var(--primary); font-weight: 600; font-size: 1rem; }
+
+    .generate-btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white; padding: 18px 60px; border: none; border-radius: 50px; font-size: 1.15rem; font-weight: 600; cursor: pointer;
+      transition: all 0.3s ease; display: block; margin: 50px auto 0; position: relative; overflow: hidden; letter-spacing: 0.5px;
+    }
+    .generate-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255,255,255,0.3); transform: translate(-50%, -50%); transition: width 0.5s, height 0.5s; }
+    .generate-btn:hover::before { width: 300px; height: 300px; }
+    .generate-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(215, 65, 79, 0.25); }
+    .generate-btn:active { transform: translateY(-1px); }
+
+    .results-section { display: none; animation: fadeIn 0.6s ease; margin-top: 50px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .results-section.active { display: block; }
+
+    .results-header { text-align: center; /* fixed from centre */ margin-bottom: 40px; }
+    .results-title { font-size: 2rem; color: var(--dark); margin-bottom: 10px; }
+    .results-subtitle { color: var(--gray); font-size: 1.05rem; }
+
+    .venue-card { background: white; border-radius: 15px; padding: 35px; margin-bottom: 25px; border-left: 5px solid var(--primary); box-shadow: 0 8px 25px rgba(0,0,0,0.06); transition: all 0.3s ease; position: relative; overflow: hidden; }
+    .venue-card.primary { border-left-width: 8px; background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); }
+    .venue-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(215, 65, 79, 0.05) 0%, transparent 70%); border-radius: 50%; transform: translate(30%, -30%); }
+    .venue-card:hover { transform: translateX(10px); box-shadow: 0 15px 40px rgba(215, 65, 79, 0.12); }
+
+    .venue-title { font-size: 1.6rem; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 12px; /* fixed from centre */ }
+    .venue-icon { font-size: 1.8rem; }
+    .venue-description { color: var(--gray); margin-bottom: 25px; line-height: 1.8; font-size: 1.05rem; }
+
+    .venue-examples { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+    .venue-examples-title { font-weight: 600; color: var(--dark); margin-bottom: 10px; }
+    .venue-examples-list { list-style: none; padding: 0; }
+    .venue-examples-list li { padding: 8px 0 8px 25px; position: relative; color: var(--gray); }
+    .venue-examples-list li::before { content: '→'; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
+
+    .venue-considerations { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f0; }
+    .consideration-item { display: flex; align-items: flex-start; gap: 10px; color: var(--dark); }
+    .consideration-icon { width: 24px; height: 24px; border-radius: 50%; background: #fff5f5; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; margin-top: 2px; }
+    .consideration-text { line-height: 1.5; font-size: 0.95rem; }
+
+    .recommendation-badge { display: inline-block; background: var(--success); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; margin-left: 10px; }
+
+    @media (max-width: 768px) {
+      .selector-section { padding: 30px 20px; }
+      .selector-title { font-size: 1.8rem; }
+      .options-grid { grid-template-columns: 1fr; }
+      .venue-considerations { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="selector-section">
+      <h1 class="selector-title">Smart Venue Selector</h1>
+      <p class="selector-subtitle">Answer a few questions to find the perfect venue for your event</p>
+
+      <div id="questions">
+        <div class="question-card">
+          <div class="question-label"><span class="question-number">1</span>What type of event are you planning?</div>
+          <div class="options-grid">
+            <button type="button" class="option-btn" data-category="eventType" data-value="meeting">📋 Board/Executive Meeting</button>
+            <button type="button" class="option-btn" data-category="eventType" data-value="training">🎓 Training/Workshop</button>
+            <button type="button" class="option-btn" data-category="eventType" data-value="conference">🎤 Conference/Summit</button>
+            <button type="button" class="option-btn" data-category="eventType" data-value="launch">🚀 Product Launch</button>
+            <button type="button" class="option-btn" data-category="eventType" data-value="networking">🥂 Networking/Social</button>
+            <button type="button" class="option-btn" data-category="eventType" data-value="hybrid">📡 Hybrid/Virtual Event</button>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-label"><span class="question-number">2</span>How many attendees?</div>
+          <div class="slider-container">
+            <input type="range" class="slider" id="attendees" min="5" max="1000" value="50" aria-describedby="attendeesHelp" />
+            <div class="slider-labels">
+              <span>5 people</span>
+              <span class="slider-value" id="attendeesDisplay">50 people</span>
+              <span>1000+ people</span>
+            </div>
+            <p id="attendeesHelp" class="sr-only" hidden>Use left and right arrows to adjust attendees.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-label"><span class="question-number">3</span>What's your primary objective?</div>
+          <div class="options-grid">
+            <button type="button" class="option-btn" data-category="objective" data-value="professional">🎯 Professional/Formal</button>
+            <button type="button" class="option-btn" data-category="objective" data-value="creative">🎨 Creative/Inspiring</button>
+            <button type="button" class="option-btn" data-category="objective" data-value="social">🤝 Relationship Building</button>
+            <button type="button" class="option-btn" data-category="objective" data-value="brand">✨ Brand Experience</button>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-label"><span class="question-number">4</span>Budget per attendee?</div>
+          <div class="slider-container">
+            <input type="range" class="slider" id="budget" min="25" max="500" value="100" aria-describedby="budgetHelp" />
+            <div class="slider-labels">
+              <span>£25</span>
+              <span class="slider-value" id="budgetDisplay">£100</span>
+              <span>£500+</span>
+            </div>
+            <p id="budgetHelp" class="sr-only" hidden>Use left and right arrows to adjust budget per attendee.</p>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-label"><span class="question-number">5</span>Location preference?</div>
+          <div class="options-grid three-col">
+            <button type="button" class="option-btn" data-category="location" data-value="city">🏙️ City Centre</button>
+            <button type="button" class="option-btn" data-category="location" data-value="suburban">🏢 Business District</button>
+            <button type="button" class="option-btn" data-category="location" data-value="countryside">🌳 Countryside</button>
+            <button type="button" class="option-btn" data-category="location" data-value="unique">🎭 Unique/Heritage</button>
+            <button type="button" class="option-btn" data-category="location" data-value="flexible">📍 Flexible</button>
+          </div>
+        </div>
+
+        <div class="question-card">
+          <div class="question-label"><span class="question-number">6</span>Essential requirements (select all that apply)</div>
+          <div class="options-grid three-col">
+            <button type="button" class="option-btn multi-select" data-category="requirements" data-value="accommodation">🛏️ Accommodation</button>
+            <button type="button" class="option-btn multi-select" data-category="requirements" data-value="catering">🍽️ Premium Catering</button>
+            <button type="button" class="option-btn multi-select" data-category="requirements" data-value="av">📺 Advanced AV</button>
+            <button type="button" class="option-btn multi-select" data-category="requirements" data-value="breakout">🚪 Breakout Rooms</button>
+            <button type="button" class="option-btn multi-select" data-category="requirements" data-value="parking">🚗 Parking</button>
+            <button type="button" class="option-btn multi-select" data-category="requirements" data-value="streaming">📹 Streaming Setup</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="generate-btn" id="generate">Get Venue Recommendations</button>
+
+      <div id="results" class="results-section" aria-live="polite" aria-atomic="true">
+        <div class="results-header">
+          <h2 class="results-title">Your Recommended Venues</h2>
+          <p class="results-subtitle">Based on your requirements, here are the best venue types for your event:</p>
+        </div>
+        <div id="resultsContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // --- State ---
+    const selections = {
+      eventType: null,
+      attendees: 50,
+      objective: null,
+      budget: 100,
+      location: null,
+      requirements: [],
+    };
+
+    // --- Data ---
+    const venues = {
+      smallPrivate: {
+        title: 'Small & Private Meeting Venues',
+        icon: '🏛️',
+        description: 'Perfect for board meetings, executive briefings, and high-level strategy sessions where privacy and professionalism are paramount.',
+        examples: [
+          'Hotel meeting rooms with premium service',
+          'Business centres & co-working spaces',
+          'Private dining rooms for confidential discussions',
+          'Executive boardrooms in prestigious locations',
+        ],
+        considerations: [
+          'Privacy & confidentiality',
+          'Premium AV facilities',
+          'Easy accessibility',
+          'Quality catering options',
+          'Professional atmosphere',
+        ],
+        suitableFor: {
+          eventType: ['meeting'],
+          attendees: [5, 30],
+          objective: ['professional', 'social'],
+          budget: [75, 500],
+        },
+      },
+      midConference: {
+        title: 'Mid-Sized Conference & Training Venues',
+        icon: '🎓',
+        description: 'Ideal for seminars, training workshops, product demonstrations, and regional team meetings requiring flexibility and functionality.',
+        examples: [
+          'Dedicated conference centres',
+          'University & academic venues',
+          'Corporate headquarters facilities',
+          'Hotel conference suites',
+        ],
+        considerations: [
+          'Multiple room layouts',
+          'Strong Wi-Fi infrastructure',
+          'Transport links',
+          'In-house technical support',
+          'Breakout spaces',
+        ],
+        suitableFor: {
+          eventType: ['training', 'meeting'],
+          attendees: [30, 200],
+          objective: ['professional', 'creative'],
+          budget: [50, 300],
+        },
+      },
+      largeConference: {
+        title: 'Large-Scale Conference & Convention Venues',
+        icon: '🏟️',
+        description: 'Designed for annual conferences, partner summits, AGMs, and multi-day events requiring extensive facilities and capacity.',
+        examples: [
+          'Convention centres & exhibition halls',
+          'Hotel ballrooms & resort venues',
+          'Theatre or arena spaces',
+          'Large-scale conference facilities',
+        ],
+        considerations: [
+          'Scalability for growth',
+          'Technology infrastructure',
+          'Delegate flow management',
+          'Catering capacity',
+          'Accommodation options',
+        ],
+        suitableFor: {
+          eventType: ['conference'],
+          attendees: [200, 1000],
+          objective: ['professional', 'brand'],
+          budget: [75, 500],
+        },
+      },
+      experiential: {
+        title: 'Experiential & Brand-Driven Spaces',
+        icon: '✨',
+        description: 'Unique venues for product launches, immersive brand activations, and memorable client experiences that leave lasting impressions.',
+        examples: [
+          'Galleries, museums & heritage sites',
+          'Blank canvas warehouses & studios',
+          'VR centres & innovation labs',
+          'Unique architectural spaces',
+        ],
+        considerations: [
+          'Venue personality',
+          'Branding opportunities',
+          'Technical capabilities',
+          'Flow between zones',
+          'Instagram-worthy moments',
+        ],
+        suitableFor: {
+          eventType: ['launch', 'networking'],
+          attendees: [20, 500],
+          objective: ['creative', 'brand'],
+          budget: [100, 500],
+        },
+      },
+      hybrid: {
+        title: 'Hybrid & Digital-Ready Venues',
+        icon: '📡',
+        description: 'Purpose-built for hybrid conferences, virtual product launches, and events reaching global audiences through streaming.',
+        examples: [
+          'Broadcast studios with production crews',
+          'Hybrid-enabled conference venues',
+          'Tech-forward event spaces',
+          'Virtual event studios',
+        ],
+        considerations: [
+          'Streaming infrastructure',
+          'Professional soundproofing',
+          'Technical crew availability',
+          'Bandwidth capacity',
+          'Multiple camera angles',
+        ],
+        suitableFor: {
+          eventType: ['hybrid', 'conference', 'launch'],
+          attendees: [10, 1000],
+          objective: ['professional', 'brand'],
+          budget: [100, 500],
+        },
+      },
+      networking: {
+        title: 'Networking & Social Event Venues',
+        icon: '🥂',
+        description: 'Relaxed venues for evening receptions, client entertainment, and informal networking that encourages natural conversation.',
+        examples: [
+          "Rooftop bars & restaurants",
+          "Private members' clubs",
+          'Garden venues & marquees',
+          'Historic pubs & wine bars',
+        ],
+        considerations: [
+          'Ambience & atmosphere',
+          'Catering quality',
+          'Capacity flexibility',
+          'Accessibility',
+          'Weather contingency',
+        ],
+        suitableFor: {
+          eventType: ['networking'],
+          attendees: [20, 300],
+          objective: ['social', 'creative'],
+          budget: [50, 300],
+        },
+      },
+    };
+
+    // --- Helpers ---
+    const $ = (sel, el = document) => el.querySelector(sel);
+    const $$ = (sel, el = document) => Array.from(el.querySelectorAll(sel));
+
+    // Select buttons (single & multi)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.option-btn');
+      if (!btn) return;
+      const category = btn.dataset.category;
+      const value = btn.dataset.value;
+      if (!category || !value) return;
+
+      if (btn.classList.contains('multi-select') && category === 'requirements') {
+        btn.classList.toggle('selected');
+        if (btn.classList.contains('selected')) {
+          if (!selections.requirements.includes(value)) selections.requirements.push(value);
+        } else {
+          selections.requirements = selections.requirements.filter(v => v !== value);
+        }
+      } else {
+        // single-select groups
+        $$(`.option-btn[data-category="${category}"]:not(.multi-select)`).forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selections[category] = value;
+      }
+    });
+
+    // Sliders
+    $('#attendees').addEventListener('input', (e) => {
+      selections.attendees = Number(e.target.value);
+      $('#attendeesDisplay').textContent = `${e.target.value} people`;
+    });
+    $('#budget').addEventListener('input', (e) => {
+      selections.budget = Number(e.target.value);
+      $('#budgetDisplay').textContent = `£${e.target.value}`;
+    });
+
+    function validate() {
+      return selections.eventType && selections.objective && selections.location;
+    }
+
+    function scoreVenues() {
+      const scores = [];
+      for (const [key, venue] of Object.entries(venues)) {
+        let score = 0;
+        // event type
+        if (venue.suitableFor.eventType.includes(selections.eventType)) score += 3;
+        // attendees range or near miss
+        const [minA, maxA] = venue.suitableFor.attendees;
+        if (selections.attendees >= minA && selections.attendees <= maxA) score += 2; else if (Math.abs(selections.attendees - minA) < 20 || Math.abs(selections.attendees - maxA) < 50) score += 1;
+        // objective
+        if (venue.suitableFor.objective.includes(selections.objective)) score += 2;
+        // budget
+        const [minB, maxB] = venue.suitableFor.budget;
+        if (selections.budget >= minB && selections.budget <= maxB) score += 1;
+        // bonuses
+        if (selections.eventType === 'launch' && key === 'experiential') score += 2;
+        if (selections.eventType === 'hybrid' && key === 'hybrid') score += 3;
+        if (selections.location === 'unique' && key === 'experiential') score += 2;
+        if (selections.requirements.includes('streaming') && key === 'hybrid') score += 2;
+        if (selections.requirements.includes('accommodation') && (key === 'largeConference' || key === 'midConference')) score += 1;
+        if (score > 0) scores.push({ key, venue, score });
+      }
+      return scores.sort((a, b) => b.score - a.score);
+    }
+
+    function renderResults(list) {
+      const top = list.slice(0, 3);
+      const html = top.map((item, i) => `
+        <div class="venue-card ${i === 0 ? 'primary' : ''}">
+          <h3 class="venue-title">
+            <span class="venue-icon">${item.venue.icon}</span>
+            ${item.venue.title}
+            ${i === 0 ? '<span class="recommendation-badge">BEST MATCH</span>' : ''}
+          </h3>
+          <p class="venue-description">${item.venue.description}</p>
+          <div class="venue-examples">
+            <div class="venue-examples-title">Example Venues:</div>
+            <ul class="venue-examples-list">
+              ${item.venue.examples.map(ex => `<li>${ex}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="venue-considerations">
+            ${item.venue.considerations.map(con => `
+              <div class="consideration-item">
+                <span class="consideration-icon">✓</span>
+                <span class="consideration-text">${con}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      const personalised = `
+        <div class="venue-card">
+          <h3 class="venue-title"><span class="venue-icon">💡</span>Personalised Recommendations</h3>
+          <p class="venue-description">Based on your specific requirements:</p>
+          <div class="venue-considerations">
+            ${selections.requirements.includes('av') ? '<div class="consideration-item"><span class="consideration-icon">✓</span><span class="consideration-text">Prioritise venues with in-house technicians and rehearsal time.</span></div>' : ''}
+            ${selections.requirements.includes('breakout') ? '<div class="consideration-item"><span class="consideration-icon">✓</span><span class="consideration-text">Ensure multiple breakout rooms near the main space to avoid long transitions.</span></div>' : ''}
+            ${selections.requirements.includes('parking') ? '<div class="consideration-item"><span class="consideration-icon">✓</span><span class="consideration-text">Look for venues with on-site or validated parking options.</span></div>' : ''}
+            ${selections.requirements.includes('catering') ? '<div class="consideration-item"><span class="consideration-icon">✓</span><span class="consideration-text">Request seasonal menus and allergen-friendly options.</span></div>' : ''}
+            ${selections.requirements.includes('streaming') ? '<div class="consideration-item"><span class="consideration-icon">✓</span><span class="consideration-text">Confirm dedicated wired bandwidth and a broadcast control room.</span></div>' : ''}
+            ${selections.requirements.includes('accommodation') ? '<div class="consideration-item"><span class="consideration-icon">✓</span><span class="consideration-text">Favour venues with on-site rooms or nearby hotel blocks.</span></div>' : ''}
+          </div>
+        </div>`;
+
+      $('#resultsContent').innerHTML = html + personalised;
+      $('#results').classList.add('active');
+      $('#results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    $('#generate').addEventListener('click', () => {
+      if (!validate()) {
+        alert('Please answer all required questions to get your venue recommendations.');
+        return;
+      }
+      const scored = scoreVenues();
+      renderResults(scored);
+    });
+  </script>
+</body>
+</html>
