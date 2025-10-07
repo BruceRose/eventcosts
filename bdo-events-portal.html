@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDO Events Portal - Powered by Live Group</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+            min-height: 100vh;
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        .header {
+            background: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0062b8;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .welcome-section {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-title {
+            font-size: 2.2rem;
+            color: #0062b8;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .step-dot.active {
+            background: #ed1a3b;
+            width: 30px;
+            border-radius: 5px;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        .question-card.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .option-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-button {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-button:hover {
+            border-color: #0062b8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 98, 184, 0.15);
+        }
+
+        .option-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .option-description {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .primary-cta {
+            background: #ed1a3b;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .primary-cta:hover {
+            background: #d61735;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(237, 26, 59, 0.3);
+        }
+
+        .secondary-cta {
+            background: #0062b8;
+            color: white;
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .secondary-cta:hover {
+            background: #00529c;
+            transform: translateY(-2px);
+        }
+
+        .back-button {
+            background: transparent;
+            color: #666;
+            border: 1px solid #ddd;
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+
+        .back-button:hover {
+            background: #f5f5f5;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            gap: 1rem;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #0062b8 0%, #004890 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            display: none;
+        }
+
+        .result-card.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-description {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .recommended-badge {
+            background: #ed1a3b;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-area">
+                <div class="logo">BDO Events Portal</div>
+                <div class="tagline">Powered by Live Group</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcome" class="welcome-section">
+            <h1 class="welcome-title">Welcome to Your Events Hub</h1>
+            <p class="welcome-subtitle">Let's help you create an exceptional event. We'll guide you to the right solution in just a few clicks.</p>
+            <button class="primary-cta" onclick="startJourney()">Get Started</button>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator" id="stepIndicator" style="display: none;">
+            <span class="step-dot active"></span>
+            <span class="step-dot"></span>
+            <span class="step-dot"></span>
+        </div>
+
+        <!-- Question 1: Event Stage -->
+        <div id="question1" class="question-card">
+            <h2 class="question-title">Where are you in your event planning journey?</h2>
+            <div class="option-grid">
+                <div class="option-button" onclick="selectOption('early')">
+                    <div class="option-title">🎯 Just getting started</div>
+                    <div class="option-description">I have an event idea but need help bringing it to life</div>
+                </div>
+                <div class="option-button" onclick="selectOption('planning')">
+                    <div class="option-title">📋 Ready to plan</div>
+                    <div class="option-description">I know what I want and need to start organising</div>
+                </div>
+                <div class="option-button" onclick="selectOption('exploring')">
+                    <div class="option-title">🔍 Exploring options</div>
+                    <div class="option-description">I'd like to research venues and costs independently</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question 2: Support Level -->
+        <div id="question2" class="question-card">
+            <h2 class="question-title">How would you like us to support you?</h2>
+            <div class="option-grid">
+                <div class="option-button" onclick="showManagedService()">
+                    <span class="recommended-badge">RECOMMENDED</span>
+                    <div class="option-title">✨ Full managed service</div>
+                    <div class="option-description">Let our expert team handle everything from start to finish</div>
+                </div>
+                <div class="option-button" onclick="selectOption('hybrid')">
+                    <div class="option-title">🤝 Guided support</div>
+                    <div class="option-description">Get expert advice whilst maintaining control</div>
+                </div>
+                <div class="option-button" onclick="selectOption('self')">
+                    <div class="option-title">🛠️ Self-service tools</div>
+                    <div class="option-description">Access our resources and plan independently</div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="back-button" onclick="goBack()">Back</button>
+            </div>
+        </div>
+
+        <!-- Question 3: Self-Service Options -->
+        <div id="question3" class="question-card">
+            <h2 class="question-title">Which tool would be most helpful right now?</h2>
+            <div class="option-grid">
+                <div class="option-button" onclick="showResult('venue')">
+                    <div class="option-title">🏢 Venue search</div>
+                    <div class="option-description">Browse and compare venues across the UK</div>
+                </div>
+                <div class="option-button" onclick="showResult('budget')">
+                    <div class="option-title">💷 Budget calculator</div>
+                    <div class="option-description">Get an instant estimate for your event</div>
+                </div>
+                <div class="option-button" onclick="showResult('resources')">
+                    <div class="option-title">📚 Planning resources</div>
+                    <div class="option-description">Templates, checklists and guides</div>
+                </div>
+                <div class="option-button" onclick="showResult('faqs')">
+                    <div class="option-title">❓ FAQs</div>
+                    <div class="option-description">Everything you need to know about the venue booking process</div>
+                </div>
+                <div class="option-button" onclick="showResult('contact')">
+                    <div class="option-title">💬 Speak to an expert</div>
+                    <div class="option-description">Get personalised advice from our team</div>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="back-button" onclick="goBack()">Back</button>
+            </div>
+        </div>
+
+        <!-- Result: Managed Service -->
+        <div id="managedResult" class="result-card">
+            <div class="result-icon">🎉</div>
+            <h2 class="result-title">Perfect! Let's create something exceptional together</h2>
+            <p class="result-description">Our expert team will handle every detail of your event, ensuring a seamless experience from concept to completion.</p>
+            <a href="https://google.com" class="primary-cta" style="background: white; color: #0062b8;">Start Your Event Brief</a>
+            <div class="action-buttons">
+                <button class="back-button" style="color: white; border-color: rgba(255,255,255,0.5);" onclick="goBack()">Back</button>
+            </div>
+        </div>
+
+        <!-- Result: Other Options -->
+        <div id="otherResult" class="result-card">
+            <div class="result-icon" id="resultIcon">🏢</div>
+            <h2 class="result-title" id="resultTitle">Title</h2>
+            <p class="result-description" id="resultDescription">Description</p>
+            <a href="https://google.com" class="primary-cta" style="background: white; color: #0062b8;" id="resultCTA">Access Tool</a>
+            <div class="action-buttons">
+                <button class="back-button" style="color: white; border-color: rgba(255,255,255,0.5);" onclick="goBack()">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Help Bar -->
+    <div style="position: fixed; bottom: 0; left: 0; right: 0; background: #0062b8; color: white; padding: 1rem; text-align: center; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1); z-index: 1000;">
+        <div style="max-width: 900px; margin: 0 auto; font-size: 1.05rem;">
+            📞 <strong>Need help?</strong> Email <a href="mailto:bdoevent@livegroup.co.uk" style="color: white; font-weight: bold;">bdoevent@livegroup.co.uk</a> or call <strong style="font-size: 1.1rem;">020 8481 2000</strong>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        let history = [];
+
+        function startJourney() {
+            document.getElementById('welcome').style.display = 'none';
+            document.getElementById('stepIndicator').style.display = 'flex';
+            showQuestion('question1');
+            currentStep = 1;
+            updateStepIndicator();
+        }
+
+        function showQuestion(questionId) {
+            // Hide all cards
+            document.querySelectorAll('.question-card, .result-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Show selected question
+            setTimeout(() => {
+                document.getElementById(questionId).classList.add('active');
+            }, 100);
+            
+            history.push(questionId);
+        }
+
+        function selectOption(option) {
+            if (option === 'early' || option === 'planning') {
+                currentStep = 2;
+                updateStepIndicator();
+                showQuestion('question2');
+            } else if (option === 'exploring' || option === 'self') {
+                currentStep = 3;
+                updateStepIndicator();
+                showQuestion('question3');
+            } else if (option === 'hybrid') {
+                showResult('contact');
+            }
+        }
+
+        function showManagedService() {
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            setTimeout(() => {
+                document.getElementById('managedResult').classList.add('active');
+            }, 100);
+            history.push('managedResult');
+        }
+
+        function showResult(type) {
+            const results = {
+                venue: {
+                    icon: '🏢',
+                    title: 'Find Your Perfect Venue',
+                    description: 'Search from thousands of UK venues with real-time availability and instant quotes.',
+                    cta: 'Start Venue Search'
+                },
+                budget: {
+                    icon: '💷',
+                    title: 'Calculate Your Event Budget',
+                    description: 'Get an accurate cost estimate in minutes with our intelligent budget calculator.',
+                    cta: 'Calculate Budget'
+                },
+                resources: {
+                    icon: '📚',
+                    title: 'Access Planning Resources',
+                    description: 'Download templates, checklists and guides to help you plan the perfect event.',
+                    cta: 'View Resources'
+                },
+                faqs: {
+                    icon: '❓',
+                    title: 'Venue Booking FAQs',
+                    description: 'Get answers to all your questions about the venue booking process, from selection to contracts.',
+                    cta: 'View FAQs'
+                },
+                contact: {
+                    icon: '💬',
+                    title: 'Let\'s Talk About Your Event',
+                    description: 'Our expert team is ready to provide personalised advice and support for your event.',
+                    cta: 'Contact Team'
+                }
+            };
+
+            const result = results[type];
+            document.getElementById('resultIcon').textContent = result.icon;
+            document.getElementById('resultTitle').textContent = result.title;
+            document.getElementById('resultDescription').textContent = result.description;
+            document.getElementById('resultCTA').textContent = result.cta;
+
+            document.querySelectorAll('.question-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            setTimeout(() => {
+                document.getElementById('otherResult').classList.add('active');
+            }, 100);
+            history.push('otherResult');
+        }
+
+        function goBack() {
+            history.pop(); // Remove current
+            const previous = history[history.length - 1];
+            
+            if (!previous) {
+                // Go back to welcome
+                document.querySelectorAll('.question-card, .result-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                document.getElementById('welcome').style.display = 'block';
+                document.getElementById('stepIndicator').style.display = 'none';
+                currentStep = 0;
+            } else {
+                // Update step indicator based on which question we're going back to
+                if (previous === 'question1') currentStep = 1;
+                else if (previous === 'question2') currentStep = 2;
+                else if (previous === 'question3') currentStep = 3;
+                
+                updateStepIndicator();
+                
+                document.querySelectorAll('.question-card, .result-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                setTimeout(() => {
+                    document.getElementById(previous).classList.add('active');
+                }, 100);
+            }
+        }
+
+        function updateStepIndicator() {
+            const dots = document.querySelectorAll('.step-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentStep) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
