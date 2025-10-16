@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudienceDNA Event Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #381e38 0%, #1a0f1a 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            animation: slideDown 0.6s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #d7414f, #009ba7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 24px;
+        }
+        
+        h1 {
+            color: #381e38;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.6s ease-out backwards;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #d7414f, #009ba7);
+        }
+        
+        .metric-card:nth-child(1) { animation-delay: 0.1s; }
+        .metric-card:nth-child(2) { animation-delay: 0.2s; }
+        .metric-card:nth-child(3) { animation-delay: 0.3s; }
+        .metric-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #d7414f, #009ba7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .metric-detail {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 968px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            animation: fadeIn 0.8s ease-out backwards;
+        }
+        
+        .chart-card:nth-child(1) { animation-delay: 0.5s; }
+        .chart-card:nth-child(2) { animation-delay: 0.6s; }
+        
+        .chart-title {
+            color: #381e38;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chart-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #d7414f20, #009ba720);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .recommendations {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            animation: fadeIn 0.9s ease-out backwards;
+        }
+        
+        .rec-section {
+            margin-bottom: 30px;
+        }
+        
+        .rec-title {
+            color: #381e38;
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .rec-item {
+            background: linear-gradient(135deg, #f8f9fa, #fff);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #009ba7;
+            transition: all 0.3s ease;
+        }
+        
+        .rec-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,155,167,0.1);
+        }
+        
+        .rec-item-title {
+            color: #381e38;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .rec-item-text {
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, #009ba7, #00798a);
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,155,167,0.3);
+        }
+        
+        .insight-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insight-text {
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+        
+        .profile-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tab-container {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px 8px 0 0;
+            font-weight: 500;
+        }
+        
+        .tab-button:hover {
+            color: #009ba7;
+            background: rgba(0,155,167,0.05);
+        }
+        
+        .tab-button.active {
+            color: #009ba7;
+            background: linear-gradient(135deg, #009ba710, #d7414f10);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        canvas {
+            max-height: 300px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">LG</div>
+                <div>
+                    <h1>AudienceDNA Event Dashboard</h1>
+                    <div class="subtitle">Powered by Live Group</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Attendees</div>
+                <div class="metric-value">85</div>
+                <div class="metric-detail">Personality profiles analysed</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Dominant Profile</div>
+                <div class="metric-value">27.1%</div>
+                <div class="metric-detail">Strategists - Analytical leaders</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Thinking vs Feeling</div>
+                <div class="metric-value">86:14</div>
+                <div class="metric-detail">Highly analytical audience</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-label">Extrovert Ratio</div>
+                <div class="metric-value">62.4%</div>
+                <div class="metric-detail">Socially engaged attendees</div>
+            </div>
+        </div>
+        
+        <!-- Key Insight -->
+        <div class="insight-card">
+            <div class="insight-title">
+                <span>⚡</span> Audience Snapshot
+            </div>
+            <div class="insight-text">
+                Your audience is predominantly analytical, strategic thinkers who value structure and logical approaches. With 70.6% preferring judging over perceiving, they appreciate well-organised agendas and clear outcomes. The strong intuitive preference (67.1%) indicates they're interested in big-picture thinking and innovative concepts.
+            </div>
+            <div class="profile-badges">
+                <div class="badge">🎯 Goal-Oriented</div>
+                <div class="badge">📊 Data-Driven</div>
+                <div class="badge">🚀 Innovation-Focused</div>
+                <div class="badge">🤝 Collaborative</div>
+                <div class="badge">📋 Structure-Seeking</div>
+            </div>
+        </div>
+        
+        <!-- Charts -->
+        <div class="charts-row">
+            <div class="chart-card">
+                <div class="chart-title">
+                    <div class="chart-icon">📊</div>
+                    Top Personality Profiles
+                </div>
+                <canvas id="profileChart"></canvas>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-title">
+                    <div class="chart-icon">🧠</div>
+                    Personality Dimensions
+                </div>
+                <canvas id="dimensionsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Recommendations Tabs -->
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('content')">Content Strategy</button>
+                <button class="tab-button" onclick="showTab('space')">Space Design</button>
+                <button class="tab-button" onclick="showTab('agenda')">Agenda Planning</button>
+                <button class="tab-button" onclick="showTab('engagement')">Engagement</button>
+            </div>
+            
+            <div id="content" class="tab-content active">
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <div class="rec-item-title">📈 Data-Rich Presentations</div>
+                        <div class="rec-item-text">With 86% thinking types, incorporate case studies with metrics, ROI analyses, and quantifiable outcomes. Use infographics and data visualisations.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🎯 Strategic Frameworks</div>
+                        <div class="rec-item-text">Present content using strategic models and frameworks. The Strategist-heavy audience will appreciate structured thinking tools and methodologies.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🔮 Future-Focused Topics</div>
+                        <div class="rec-item-text">67% intuitive preference means emphasis on innovation, trends, and future possibilities will resonate. Include "what's next" segments.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">💡 Problem-Solution Format</div>
+                        <div class="rec-item-text">Structure sessions around real challenges and practical solutions. Include interactive problem-solving workshops.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🧩 Systems Thinking Content</div>
+                        <div class="rec-item-text">Address interconnected challenges and holistic solutions. Show how individual components affect the broader organisational ecosystem.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">📚 Research-Backed Insights</div>
+                        <div class="rec-item-text">Include peer-reviewed studies, industry benchmarks, and empirical evidence. Provide bibliographies and further reading lists.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🎬 Scenario Planning</div>
+                        <div class="rec-item-text">Use "what-if" scenarios and predictive modelling exercises. Let attendees explore multiple strategic pathways and outcomes.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">⚡ Rapid Fire Insights</div>
+                        <div class="rec-item-text">Include "lightning talk" sessions where experts share concentrated wisdom in 5-minute bursts, perfect for the analytical mindset.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="space" class="tab-content">
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <div class="rec-item-title">🏢 Professional Zones</div>
+                        <div class="rec-item-text">Create designated areas for structured networking with clear purposes - "Innovation Hub", "Strategy Corner", "Analytics Station".</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🤝 Collaborative Spaces</div>
+                        <div class="rec-item-text">With 62% extroverts, design open collaboration areas with whiteboards and digital screens for group problem-solving.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🧘 Quiet Zones</div>
+                        <div class="rec-item-text">For the 38% introverts, provide quiet spaces for reflection and focused work between sessions.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">📱 Tech Integration</div>
+                        <div class="rec-item-text">Include charging stations, digital display boards with real-time agenda updates, and QR codes for instant resource access.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🎨 Visual Data Displays</div>
+                        <div class="rec-item-text">Install large-format screens showcasing live event analytics, trending discussion topics, and interactive data visualisations throughout the venue.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">📐 Modular Furniture</div>
+                        <div class="rec-item-text">Use reconfigurable seating that can shift from theatre-style to workshop clusters. The judging preference audience values adaptable, purposeful spaces.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🌐 Connection Mapping Wall</div>
+                        <div class="rec-item-text">Create a physical or digital wall where attendees can map their expertise and find complementary skill sets for collaboration.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">☕ Strategic Coffee Points</div>
+                        <div class="rec-item-text">Position refreshment stations to encourage cross-pollination between different attendee groups, with standing tables for impromptu discussions.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="agenda" class="tab-content">
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <div class="rec-item-title">⏰ Structured Timeline</div>
+                        <div class="rec-item-text">With 71% judging preference, maintain punctual starts, clear transitions, and visible countdown timers. Share detailed agenda in advance.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🎯 Clear Objectives</div>
+                        <div class="rec-item-text">Begin each session with explicit learning outcomes and end with key takeaways summary. Provide action item templates.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">⚡ High-Energy Opening</div>
+                        <div class="rec-item-text">Start with a thought-provoking keynote that challenges conventional thinking and sets an innovative tone.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🔄 Format Variety</div>
+                        <div class="rec-item-text">Mix keynotes (30%), interactive workshops (40%), and structured networking (30%) to maintain engagement.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">📊 Data Deep-Dives</div>
+                        <div class="rec-item-text">Schedule focused 90-minute workshops where attendees can analyse real datasets and develop actionable insights collaboratively.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🔍 Executive Briefings</div>
+                        <div class="rec-item-text">Offer optional early-morning or lunch sessions with C-suite speakers for strategic discussions in smaller groups.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🎪 Innovation Showcase</div>
+                        <div class="rec-item-text">Dedicate time for rapid-fire demonstrations of cutting-edge solutions, allowing the intuitive audience to explore future possibilities.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">✅ Implementation Sessions</div>
+                        <div class="rec-item-text">End with practical "how-to" workshops where attendees create personalised action plans using templates and frameworks.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="engagement" class="tab-content">
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <div class="rec-item-title">📊 Live Polling</div>
+                        <div class="rec-item-text">Use real-time polling and display results instantly. This analytical audience will enjoy seeing data patterns emerge live.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🏆 Strategic Challenges</div>
+                        <div class="rec-item-text">Incorporate business case competitions or strategy hackathons with clear criteria and measurable outcomes.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">💬 Structured Debates</div>
+                        <div class="rec-item-text">Organise Oxford-style debates on industry topics. The thinking-dominant audience will appreciate logical argumentation.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🎮 Gamification</div>
+                        <div class="rec-item-text">Implement point systems for session attendance, networking connections made, and insights shared via event app.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🤖 AI-Powered Matching</div>
+                        <div class="rec-item-text">Use intelligent algorithms to suggest relevant connections based on complementary skills, interests, and strategic objectives.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">📈 Prediction Markets</div>
+                        <div class="rec-item-text">Let attendees forecast industry trends or vote on strategic decisions, revealing collective intelligence through crowd wisdom.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">🎯 Peer Learning Circles</div>
+                        <div class="rec-item-text">Facilitate small-group mastermind sessions where similar profiles can share challenges and co-create solutions.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">💡 Innovation Wall</div>
+                        <div class="rec-item-text">Create a digital or physical space where attendees post challenges and others propose solutions, fostering collaborative problem-solving.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Additional Recommendations -->
+        <div class="recommendations">
+            <div class="rec-section">
+                <div class="rec-title">
+                    <span>🎤</span> Speaker Selection
+                </div>
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <div class="rec-item-title">Industry Thought Leaders</div>
+                        <div class="rec-item-text">Prioritise speakers with proven track records, published research, or successful implementations. Include C-suite executives and strategy consultants.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Data Storytellers</div>
+                        <div class="rec-item-text">Choose presenters who can blend analytics with narrative, making complex data accessible and actionable.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Contrarian Thinkers</div>
+                        <div class="rec-item-text">Include speakers who challenge industry norms and present alternative viewpoints, stimulating the strategic thinking this audience craves.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Cross-Industry Innovators</div>
+                        <div class="rec-item-text">Bring in experts from adjacent industries who can share transferable strategies and fresh perspectives on familiar challenges.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rec-section">
+                <div class="rec-title">
+                    <span>🍽️</span> Catering & Networking
+                </div>
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <div class="rec-item-title">Brain Food Focus</div>
+                        <div class="rec-item-text">Offer healthy, energy-sustaining options. Include coffee stations strategically placed for impromptu discussions.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Structured Networking</div>
+                        <div class="rec-item-text">Use "speed networking" sessions with clear rules and outcomes. Provide conversation starter cards with strategic questions.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Working Lunch Options</div>
+                        <div class="rec-item-text">Offer "lunch and learn" roundtables where attendees can discuss specific topics whilst dining, maximising productive time.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Networking Analytics</div>
+                        <div class="rec-item-text">Provide post-event reports showing networking patterns, most-connected individuals, and collaboration opportunities identified.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="rec-section">
+                <div class="rec-title">
+                    <span>📱</span> Technology & Tools
+                </div>
+                <div class="rec-grid">
+                    <div class="rec-item">
+                        <div class="rec-item-title">Event App with Analytics</div>
+                        <div class="rec-item-text">Provide an app showing session ratings, attendance heat maps, and networking match suggestions based on interests.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Resource Library</div>
+                        <div class="rec-item-text">Create a digital repository of frameworks, whitepapers, and tools mentioned during sessions for post-event access.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Virtual Collaboration Tools</div>
+                        <div class="rec-item-text">Enable digital whiteboarding and real-time document collaboration for workshop activities, supporting hybrid participation.</div>
+                    </div>
+                    <div class="rec-item">
+                        <div class="rec-item-title">Post-Event Dashboard</div>
+                        <div class="rec-item-text">Provide personalised analytics showing sessions attended, connections made, resources downloaded, and recommended follow-up actions.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            © 2025 Live Group | AudienceDNA Analytics Platform
+        </div>
+    </div>
+    
+    <script>
+        // Profile Distribution Chart
+        const profileCtx = document.getElementById('profileChart').getContext('2d');
+        new Chart(profileCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Strategist', 'Architect', 'Scholar', 'Innovator', 'Analyst', 'Others'],
+                datasets: [{
+                    data: [23, 12, 10, 10, 8, 22],
+                    backgroundColor: [
+                        '#d7414f',
+                        '#009ba7',
+                        '#381e38',
+                        '#ff7582',
+                        '#00c4d4',
+                        '#5a3a5a'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Personality Dimensions Chart
+        const dimensionsCtx = document.getElementById('dimensionsChart').getContext('2d');
+        new Chart(dimensionsCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Thinking vs Feeling', 'Extrovert vs Introvert', 'Judging vs Perceiving', 'Intuition vs Sensing'],
+                datasets: [{
+                    label: 'Primary',
+                    data: [73, 53, 60, 57],
+                    backgroundColor: '#009ba7',
+                    borderRadius: 8
+                }, {
+                    label: 'Secondary',
+                    data: [12, 32, 25, 28],
+                    backgroundColor: '#d7414f',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: { size: 12 }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Tab functionality
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+            
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
