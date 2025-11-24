@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Individual Personality Profiles - ADNA Breakfast Briefing</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f8f8;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --border: #e0e0e0;
+            --accent-1: #d7414f;
+            --accent-2: #009ba7;
+            --accent-3: #381e38;
+            --gradient-strategist: linear-gradient(135deg, #d7414f, #381e38);
+            --gradient-innovator: linear-gradient(135deg, #009ba7, #381e38);
+            --gradient-architect: linear-gradient(135deg, #d7414f, #009ba7);
+            --gradient-analyst: linear-gradient(135deg, #381e38, #d7414f);
+            --gradient-advocate: linear-gradient(135deg, #009ba7, #d7414f);
+            --gradient-empath: linear-gradient(135deg, #381e38, #009ba7);
+            --gradient-counsellor: linear-gradient(135deg, #d7414f, #381e38);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent-3);
+            padding: 40px 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .header h1 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .filter-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--accent-3);
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            color: var(--text-primary);
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-1);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: -1;
+        }
+
+        .filter-btn.active {
+            color: white;
+            border-color: var(--accent-1);
+            background: var(--accent-1);
+        }
+
+        .filter-btn:hover:not(.active) {
+            border-color: var(--accent-2);
+            color: var(--accent-2);
+        }
+
+        .filter-btn[data-profile="Strategist"]::before,
+        .filter-btn[data-profile="Strategist"].active { background: var(--accent-1); }
+        .filter-btn[data-profile="Innovator"]::before,
+        .filter-btn[data-profile="Innovator"].active { background: var(--accent-2); }
+        .filter-btn[data-profile="Architect"]::before,
+        .filter-btn[data-profile="Architect"].active { background: var(--accent-3); }
+        .filter-btn[data-profile="Analyst"]::before,
+        .filter-btn[data-profile="Analyst"].active { background: linear-gradient(135deg, var(--accent-3), var(--accent-1)); }
+        .filter-btn[data-profile="Advocate"]::before,
+        .filter-btn[data-profile="Advocate"].active { background: linear-gradient(135deg, var(--accent-2), var(--accent-1)); }
+        .filter-btn[data-profile="Empath"]::before,
+        .filter-btn[data-profile="Empath"].active { background: linear-gradient(135deg, var(--accent-3), var(--accent-2)); }
+        .filter-btn[data-profile="Counsellor"]::before,
+        .filter-btn[data-profile="Counsellor"].active { background: linear-gradient(135deg, var(--accent-1), var(--accent-3)); }
+
+        .participants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .participant-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+            border: 2px solid var(--border);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .participant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(56, 30, 56, 0.15);
+            border-color: var(--accent-1);
+        }
+
+        .card-header {
+            padding: 20px;
+            background: var(--gradient-strategist);
+            color: white;
+            position: relative;
+        }
+
+        .card-header.Strategist { background: var(--accent-1); }
+        .card-header.Innovator { background: var(--accent-2); }
+        .card-header.Architect { background: var(--accent-3); }
+        .card-header.Analyst { background: linear-gradient(135deg, var(--accent-3), var(--accent-1)); }
+        .card-header.Advocate { background: linear-gradient(135deg, var(--accent-2), var(--accent-1)); }
+        .card-header.Empath { background: linear-gradient(135deg, var(--accent-3), var(--accent-2)); }
+        .card-header.Counsellor { background: linear-gradient(135deg, var(--accent-1), var(--accent-3)); }
+
+        .participant-name {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .profile-type {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .personality-code {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .traits-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .trait-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .trait-item:hover {
+            background: #f0f0f0;
+            transform: translateX(3px);
+        }
+
+        .trait-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .trait-value {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-1);
+        }
+
+        .dominant-traits {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .trait-badge {
+            padding: 6px 12px;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+
+        .trait-badge.primary {
+            background: var(--accent-1);
+            color: white;
+            border-color: var(--accent-1);
+        }
+
+        .radar-container {
+            position: relative;
+            height: 200px;
+            margin-top: 20px;
+        }
+
+        .summary-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 40px;
+            margin-top: 60px;
+            text-align: center;
+            border: 2px solid var(--accent-3);
+        }
+
+        .summary-title {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--accent-3);
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .summary-stat {
+            padding: 25px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 2px solid var(--border);
+        }
+
+        .summary-stat:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(56, 30, 56, 0.1);
+            border-color: var(--accent-2);
+        }
+
+        .summary-stat-value {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-1);
+            margin-bottom: 10px;
+        }
+
+        .summary-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @media (max-width: 768px) {
+            .participants-grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Individual Personality Profiles</h1>
+        <p>Detailed breakdown of each participant's personality assessment</p>
+    </div>
+
+    <div class="container">
+        <div class="filter-section">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-profile="All">All Participants</button>
+                <button class="filter-btn" data-profile="Strategist">Strategist (6)</button>
+                <button class="filter-btn" data-profile="Innovator">Innovator (3)</button>
+                <button class="filter-btn" data-profile="Architect">Architect (2)</button>
+                <button class="filter-btn" data-profile="Analyst">Analyst (2)</button>
+                <button class="filter-btn" data-profile="Advocate">Advocate (2)</button>
+                <button class="filter-btn" data-profile="Empath">Empath (1)</button>
+                <button class="filter-btn" data-profile="Counsellor">Counsellor (1)</button>
+            </div>
+        </div>
+
+        <div class="participants-grid" id="participantsGrid">
+            <!-- Participant cards will be generated here -->
+        </div>
+
+        <div class="summary-section">
+            <h2 class="summary-title">Team Composition Overview</h2>
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <div class="summary-stat-value">76.5%</div>
+                    <div class="summary-stat-label">Logic-Driven Thinkers</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">82.4%</div>
+                    <div class="summary-stat-label">Structured Approach</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">70.6%</div>
+                    <div class="summary-stat-label">Big Picture Focus</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-stat-value">76.5%</div>
+                    <div class="summary-stat-label">Collaborative Energy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Participant data
+        const participants = [
+            { name: "Julie Hawkins", profile: "Strategist", code: "TEJI", scores: { feeling: 3, thinking: 3, introvert: 4, extrovert: 6, perceiving: 1, judging: 5, intuition: 6, sensing: 0 }, dominant: ["Thinking", "Extrovert", "Judging", "Intuition"] },
+            { name: "Paul Gibbons", profile: "Innovator", code: "TEPI", scores: { feeling: 2, thinking: 5, introvert: 2, extrovert: 5, perceiving: 5, judging: 2, intuition: 5, sensing: 2 }, dominant: ["Thinking", "Extrovert", "Perceiving", "Intuition"] },
+            { name: "Emily Middleton", profile: "Strategist", code: "TEJI", scores: { feeling: 1, thinking: 5, introvert: 0, extrovert: 11, perceiving: 2, judging: 7, intuition: 6, sensing: 1 }, dominant: ["Thinking", "Extrovert", "Judging", "Intuition"] },
+            { name: "Paul Van Eynde", profile: "Innovator", code: "TEPI", scores: { feeling: 2, thinking: 5, introvert: 0, extrovert: 10, perceiving: 5, judging: 3, intuition: 11, sensing: 0 }, dominant: ["Thinking", "Extrovert", "Perceiving", "Intuition"] },
+            { name: "Umar Gill", profile: "Architect", code: "TEJS", scores: { feeling: 1, thinking: 7, introvert: 2, extrovert: 6, perceiving: 4, judging: 4, intuition: 3, sensing: 5 }, dominant: ["Thinking", "Extrovert", "Judging", "Sensing"] },
+            { name: "Petra Johansson", profile: "Analyst", code: "TIJS", scores: { feeling: 1, thinking: 4, introvert: 5, extrovert: 3, perceiving: 0, judging: 5, intuition: 3, sensing: 3 }, dominant: ["Thinking", "Introvert", "Judging", "Sensing"] },
+            { name: "Amit Sanghvi", profile: "Innovator", code: "TEPI", scores: { feeling: 1, thinking: 6, introvert: 0, extrovert: 7, perceiving: 5, judging: 1, intuition: 5, sensing: 0 }, dominant: ["Thinking", "Extrovert", "Perceiving", "Intuition"] },
+            { name: "Jenny Wasmuth", profile: "Strategist", code: "TEJI", scores: { feeling: 3, thinking: 4, introvert: 0, extrovert: 7, perceiving: 3, judging: 3, intuition: 4, sensing: 3 }, dominant: ["Thinking", "Extrovert", "Judging", "Intuition"] },
+            { name: "Katie Rogers", profile: "Empath", code: "FIJI", scores: { feeling: 4, thinking: 1, introvert: 4, extrovert: 3, perceiving: 2, judging: 3, intuition: 3, sensing: 2 }, dominant: ["Feeling", "Introvert", "Judging", "Intuition"] },
+            { name: "Liz Scorer", profile: "Strategist", code: "TEJI", scores: { feeling: 1, thinking: 5, introvert: 1, extrovert: 6, perceiving: 2, judging: 2, intuition: 4, sensing: 1 }, dominant: ["Thinking", "Extrovert", "Judging", "Intuition"] },
+            { name: "James Bryce", profile: "Advocate", code: "FEJI", scores: { feeling: 4, thinking: 2, introvert: 4, extrovert: 7, perceiving: 1, judging: 5, intuition: 4, sensing: 0 }, dominant: ["Feeling", "Extrovert", "Judging", "Intuition"] },
+            { name: "Kate Morris", profile: "Strategist", code: "TEJI", scores: { feeling: 3, thinking: 4, introvert: 1, extrovert: 8, perceiving: 2, judging: 5, intuition: 5, sensing: 3 }, dominant: ["Thinking", "Extrovert", "Judging", "Intuition"] },
+            { name: "Hamza Ali", profile: "Architect", code: "TEJS", scores: { feeling: 1, thinking: 3, introvert: 3, extrovert: 4, perceiving: 3, judging: 4, intuition: 3, sensing: 4 }, dominant: ["Thinking", "Extrovert", "Judging", "Sensing"] },
+            { name: "Henry Payne", profile: "Strategist", code: "TEJI", scores: { feeling: 3, thinking: 6, introvert: 2, extrovert: 5, perceiving: 3, judging: 8, intuition: 5, sensing: 3 }, dominant: ["Thinking", "Extrovert", "Judging", "Intuition"] },
+            { name: "Taran Chadha", profile: "Counsellor", code: "FIJS", scores: { feeling: 5, thinking: 1, introvert: 1, extrovert: 3, perceiving: 2, judging: 3, intuition: 1, sensing: 4 }, dominant: ["Feeling", "Introvert", "Judging", "Sensing"] },
+            { name: "Melissa Spector", profile: "Analyst", code: "TIJS", scores: { feeling: 1, thinking: 6, introvert: 3, extrovert: 2, perceiving: 4, judging: 6, intuition: 2, sensing: 4 }, dominant: ["Thinking", "Introvert", "Judging", "Sensing"] },
+            { name: "Eva Rose", profile: "Advocate", code: "FEJI", scores: { feeling: 3, thinking: 1, introvert: 0, extrovert: 3, perceiving: 1, judging: 2, intuition: 3, sensing: 0 }, dominant: ["Feeling", "Extrovert", "Judging", "Intuition"] }
+        ];
+
+        // Create participant cards
+        function createParticipantCard(participant, index) {
+            const card = document.createElement('div');
+            card.className = 'participant-card';
+            card.dataset.profile = participant.profile;
+            card.style.animationDelay = `${index * 0.05}s`;
+
+            const radarId = `radar-${participant.name.replace(/\s+/g, '-').toLowerCase()}`;
+
+            card.innerHTML = `
+                <div class="card-header ${participant.profile}">
+                    <h3 class="participant-name">${participant.name}</h3>
+                    <p class="profile-type">${participant.profile}</p>
+                    <span class="personality-code">${participant.code}</span>
+                </div>
+                <div class="card-body">
+                    <div class="traits-grid">
+                        <div class="trait-item">
+                            <span class="trait-label">Thinking</span>
+                            <span class="trait-value">${participant.scores.thinking}</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-label">Feeling</span>
+                            <span class="trait-value">${participant.scores.feeling}</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-label">Extrovert</span>
+                            <span class="trait-value">${participant.scores.extrovert}</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-label">Introvert</span>
+                            <span class="trait-value">${participant.scores.introvert}</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-label">Judging</span>
+                            <span class="trait-value">${participant.scores.judging}</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-label">Perceiving</span>
+                            <span class="trait-value">${participant.scores.perceiving}</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-label">Intuition</span>
+                            <span class="trait-value">${participant.scores.intuition}</span>
+                        </div>
+                        <div class="trait-item">
+                            <span class="trait-label">Sensing</span>
+                            <span class="trait-value">${participant.scores.sensing}</span>
+                        </div>
+                    </div>
+                    <div class="radar-container">
+                        <canvas id="${radarId}"></canvas>
+                    </div>
+                    <div class="dominant-traits">
+                        ${participant.dominant.map((trait, i) => 
+                            `<span class="trait-badge ${i === 0 ? 'primary' : ''}">${trait}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+
+            return { card, radarId, participant };
+        }
+
+        // Initialize all cards
+        function initializeCards() {
+            const grid = document.getElementById('participantsGrid');
+            grid.innerHTML = '';
+            
+            const cardData = participants.map((p, i) => createParticipantCard(p, i));
+            
+            cardData.forEach(({ card, radarId, participant }) => {
+                grid.appendChild(card);
+                
+                // Create radar chart after card is in DOM
+                setTimeout(() => {
+                    const ctx = document.getElementById(radarId);
+                    if (ctx) {
+                        new Chart(ctx, {
+                            type: 'radar',
+                            data: {
+                                labels: ['Thinking', 'Feeling', 'Extrovert', 'Introvert', 'Judging', 'Perceiving', 'Intuition', 'Sensing'],
+                                datasets: [{
+                                    label: participant.name,
+                                    data: [
+                                        participant.scores.thinking,
+                                        participant.scores.feeling,
+                                        participant.scores.extrovert,
+                                        participant.scores.introvert,
+                                        participant.scores.judging,
+                                        participant.scores.perceiving,
+                                        participant.scores.intuition,
+                                        participant.scores.sensing
+                                    ],
+                                    backgroundColor: 'rgba(215, 65, 79, 0.2)',
+                                    borderColor: '#d7414f',
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#d7414f',
+                                    pointBorderColor: '#fff',
+                                    pointHoverBackgroundColor: '#fff',
+                                    pointHoverBorderColor: '#d7414f'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                },
+                                scales: {
+                                    r: {
+                                        beginAtZero: true,
+                                        max: 12,
+                                        ticks: {
+                                            stepSize: 3,
+                                            display: false
+                                        },
+                                        grid: {
+                                            color: 'rgba(56, 30, 56, 0.1)'
+                                        },
+                                        pointLabels: {
+                                            font: {
+                                                size: 10
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }, 100);
+            });
+        }
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const filter = this.dataset.profile;
+                const cards = document.querySelectorAll('.participant-card');
+                
+                cards.forEach((card, index) => {
+                    if (filter === 'All' || card.dataset.profile === filter) {
+                        card.style.display = 'block';
+                        card.style.animationDelay = `${index * 0.05}s`;
+                        card.style.animation = 'none';
+                        setTimeout(() => {
+                            card.style.animation = '';
+                        }, 10);
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeCards);
+    </script>
+</body>
+</html>
