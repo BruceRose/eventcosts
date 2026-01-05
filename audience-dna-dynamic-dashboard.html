@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudienceDNA Dynamic Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #381e38 0%, #1a0f1a 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            animation: slideDown 0.6s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #381e38;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+        }
+        
+        /* File Upload Section */
+        .upload-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        .upload-area {
+            border: 3px dashed #009ba7;
+            border-radius: 12px;
+            padding: 40px;
+            background: linear-gradient(135deg, #009ba710, #d7414f10);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            background: linear-gradient(135deg, #009ba720, #d7414f20);
+            border-color: #d7414f;
+        }
+        
+        .upload-area.dragging {
+            background: linear-gradient(135deg, #009ba730, #d7414f30);
+            border-color: #d7414f;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .upload-subtext {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .sample-data-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #009ba7, #d7414f);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .sample-data-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        /* Dashboard Content (Initially Hidden) */
+        .dashboard-content {
+            display: none;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .dashboard-content.active {
+            display: block;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.6s ease-out backwards;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #009ba7, #d7414f);
+        }
+        
+        .metric-label {
+            color: #888;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            color: #381e38;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .metric-detail {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, #009ba7, #d7414f);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            color: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .insight-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insight-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .profile-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #381e38;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chart-icon {
+            font-size: 24px;
+        }
+        
+        .tab-container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #f0f0f0;
+            overflow-x: auto;
+        }
+        
+        .tab-button {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        
+        .tab-button:hover {
+            color: #009ba7;
+            background: rgba(0,155,167,0.05);
+        }
+        
+        .tab-button.active {
+            color: #009ba7;
+            border-bottom-color: #009ba7;
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .rec-item {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .rec-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .rec-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #381e38;
+            margin-bottom: 10px;
+        }
+        
+        .rec-item-text {
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        canvas {
+            max-height: 300px;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+        
+        .status-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div>
+                    <h1>AudienceDNA Dynamic Dashboard</h1>
+                    <div class="subtitle">Upload your Audience DNA results to generate insights</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- File Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📊</div>
+                <div class="upload-text">Drop your Excel or CSV file here</div>
+                <div class="upload-subtext">or click to browse</div>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+            </div>
+            <button class="sample-data-btn" onclick="loadSampleData()">Load Sample Data</button>
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+        
+        <!-- Dashboard Content (Hidden initially) -->
+        <div class="dashboard-content" id="dashboardContent">
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Total Attendees</div>
+                    <div class="metric-value" id="totalAttendees">-</div>
+                    <div class="metric-detail">Personality profiles analysed</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Dominant Profile</div>
+                    <div class="metric-value" id="dominantProfile">-</div>
+                    <div class="metric-detail" id="dominantProfileDesc">-</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Thinking vs Feeling</div>
+                    <div class="metric-value" id="thinkingFeeling">-</div>
+                    <div class="metric-detail" id="thinkingFeelingDesc">-</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Extrovert Ratio</div>
+                    <div class="metric-value" id="extrovertRatio">-</div>
+                    <div class="metric-detail" id="extrovertDesc">-</div>
+                </div>
+            </div>
+            
+            <!-- Key Insight -->
+            <div class="insight-card">
+                <div class="insight-title">
+                    <span>⚡</span> Audience Snapshot
+                </div>
+                <div class="insight-text" id="audienceSnapshot">
+                    Loading audience insights...
+                </div>
+                <div class="profile-badges" id="profileBadges">
+                    <!-- Badges will be added dynamically -->
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <div class="chart-icon">📊</div>
+                        Top Personality Profiles
+                    </div>
+                    <canvas id="profileChart"></canvas>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">
+                        <div class="chart-icon">🧠</div>
+                        Personality Dimensions
+                    </div>
+                    <canvas id="dimensionsChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Recommendations Tabs -->
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('content')">Content Strategy</button>
+                    <button class="tab-button" onclick="showTab('space')">Space Design</button>
+                    <button class="tab-button" onclick="showTab('agenda')">Agenda Planning</button>
+                    <button class="tab-button" onclick="showTab('engagement')">Engagement</button>
+                </div>
+                
+                <div id="content" class="tab-content active">
+                    <div class="rec-grid" id="contentRecs">
+                        <!-- Content recommendations will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div id="space" class="tab-content">
+                    <div class="rec-grid" id="spaceRecs">
+                        <!-- Space recommendations will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div id="agenda" class="tab-content">
+                    <div class="rec-grid" id="agendaRecs">
+                        <!-- Agenda recommendations will be added dynamically -->
+                    </div>
+                </div>
+                
+                <div id="engagement" class="tab-content">
+                    <div class="rec-grid" id="engagementRecs">
+                        <!-- Engagement recommendations will be added dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>AudienceDNA Dynamic Dashboard • Process your personality assessment results</p>
+        </div>
+    </div>
+
+    <script>
+        let profileChart = null;
+        let dimensionsChart = null;
+        let currentData = null;
+
+        // Initialize file upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragging');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragging');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragging');
+                if (e.dataTransfer.files.length > 0) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            const statusMessage = document.getElementById('statusMessage');
+            
+            statusMessage.className = 'status-message success';
+            statusMessage.textContent = 'Processing file...';
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (jsonData.length === 0) {
+                        throw new Error('No data found in file');
+                    }
+                    
+                    processData(jsonData);
+                    statusMessage.className = 'status-message success';
+                    statusMessage.textContent = `Successfully loaded ${jsonData.length} profiles`;
+                    setTimeout(() => {
+                        statusMessage.style.display = 'none';
+                    }, 3000);
+                } catch (error) {
+                    statusMessage.className = 'status-message error';
+                    statusMessage.textContent = 'Error processing file: ' + error.message;
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processData(data) {
+            currentData = data;
+            
+            // Calculate metrics
+            const metrics = calculateMetrics(data);
+            
+            // Update dashboard
+            updateMetrics(metrics);
+            updateInsights(metrics);
+            updateCharts(metrics);
+            updateRecommendations(metrics);
+            
+            // Show dashboard
+            document.getElementById('dashboardContent').classList.add('active');
+            
+            // Scroll to dashboard
+            document.getElementById('dashboardContent').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calculateMetrics(data) {
+            const totalCount = data.length;
+            
+            // Profile counts
+            const profileCounts = {};
+            data.forEach(row => {
+                const profile = row['Audience DNA Profile'] || 'Unknown';
+                profileCounts[profile] = (profileCounts[profile] || 0) + 1;
+            });
+            
+            // Calculate averages for each dimension
+            let thinkingSum = 0, feelingSum = 0;
+            let extrovertSum = 0, introvertSum = 0;
+            let judgingSum = 0, perceivingSum = 0;
+            let intuitionSum = 0, sensingSum = 0;
+            
+            data.forEach(row => {
+                thinkingSum += row['Thinking'] || 0;
+                feelingSum += row['Feeling'] || 0;
+                extrovertSum += row['Extrovert'] || 0;
+                introvertSum += row['Introvert'] || 0;
+                judgingSum += row['Judging'] || 0;
+                perceivingSum += row['Perceiving'] || 0;
+                intuitionSum += row['Intution'] || row['Intuition'] || 0;
+                sensingSum += row['Sensing'] || 0;
+            });
+            
+            // Calculate ratios
+            const thinkingRatio = Math.round((thinkingSum / (thinkingSum + feelingSum)) * 100);
+            const extrovertRatio = Math.round((extrovertSum / (extrovertSum + introvertSum)) * 100);
+            const judgingRatio = Math.round((judgingSum / (judgingSum + perceivingSum)) * 100);
+            const intuitionRatio = Math.round((intuitionSum / (intuitionSum + sensingSum)) * 100);
+            
+            // Find dominant profile
+            const dominantProfile = Object.keys(profileCounts).reduce((a, b) => 
+                profileCounts[a] > profileCounts[b] ? a : b
+            );
+            
+            return {
+                totalCount,
+                profileCounts,
+                dominantProfile,
+                dominantProfilePercent: ((profileCounts[dominantProfile] / totalCount) * 100).toFixed(1),
+                thinkingRatio,
+                feelingRatio: 100 - thinkingRatio,
+                extrovertRatio,
+                introvertRatio: 100 - extrovertRatio,
+                judgingRatio,
+                perceivingRatio: 100 - judgingRatio,
+                intuitionRatio,
+                sensingRatio: 100 - intuitionRatio
+            };
+        }
+
+        function updateMetrics(metrics) {
+            document.getElementById('totalAttendees').textContent = metrics.totalCount;
+            document.getElementById('dominantProfile').textContent = metrics.dominantProfilePercent + '%';
+            document.getElementById('dominantProfileDesc').textContent = metrics.dominantProfile + ' profile';
+            document.getElementById('thinkingFeeling').textContent = `${metrics.thinkingRatio}:${metrics.feelingRatio}`;
+            document.getElementById('thinkingFeelingDesc').textContent = 
+                metrics.thinkingRatio > 60 ? 'Highly analytical audience' : 
+                metrics.feelingRatio > 60 ? 'Emotionally-driven audience' : 'Balanced analytical/emotional';
+            document.getElementById('extrovertRatio').textContent = metrics.extrovertRatio + '%';
+            document.getElementById('extrovertDesc').textContent = 
+                metrics.extrovertRatio > 60 ? 'Socially engaged attendees' :
+                metrics.extrovertRatio < 40 ? 'Prefer focused activities' : 'Mixed social preferences';
+        }
+
+        function updateInsights(metrics) {
+            const snapshot = generateSnapshot(metrics);
+            document.getElementById('audienceSnapshot').textContent = snapshot;
+            
+            const badges = generateBadges(metrics);
+            const badgesContainer = document.getElementById('profileBadges');
+            badgesContainer.innerHTML = badges.map(badge => `<div class="badge">${badge}</div>`).join('');
+        }
+
+        function generateSnapshot(metrics) {
+            let snapshot = "Your audience ";
+            
+            // Thinking vs Feeling
+            if (metrics.thinkingRatio > 70) {
+                snapshot += "is predominantly analytical and data-driven, valuing logical approaches and evidence-based decisions. ";
+            } else if (metrics.feelingRatio > 70) {
+                snapshot += "is emotionally engaged and values personal connections, preferring content that resonates on a human level. ";
+            } else {
+                snapshot += "has a balanced mix of analytical and emotionally-driven individuals. ";
+            }
+            
+            // Judging vs Perceiving
+            if (metrics.judgingRatio > 60) {
+                snapshot += `With ${metrics.judgingRatio}% preferring judging over perceiving, they appreciate well-organised agendas and clear outcomes. `;
+            } else if (metrics.perceivingRatio > 60) {
+                snapshot += `With ${metrics.perceivingRatio}% preferring perceiving over judging, they value flexibility and spontaneous opportunities. `;
+            }
+            
+            // Intuition vs Sensing
+            if (metrics.intuitionRatio > 60) {
+                snapshot += `The strong intuitive preference (${metrics.intuitionRatio}%) indicates interest in big-picture thinking and innovative concepts.`;
+            } else if (metrics.sensingRatio > 60) {
+                snapshot += `The sensing preference (${metrics.sensingRatio}%) suggests they value practical, concrete examples and hands-on experiences.`;
+            }
+            
+            return snapshot;
+        }
+
+        function generateBadges(metrics) {
+            const badges = [];
+            
+            if (metrics.thinkingRatio > 70) badges.push('📊 Data-Driven');
+            if (metrics.feelingRatio > 70) badges.push('❤️ People-Focused');
+            if (metrics.extrovertRatio > 60) badges.push('🤝 Collaborative');
+            if (metrics.introvertRatio > 60) badges.push('🎯 Focused');
+            if (metrics.judgingRatio > 60) badges.push('📋 Structure-Seeking');
+            if (metrics.perceivingRatio > 60) badges.push('🔄 Flexible');
+            if (metrics.intuitionRatio > 60) badges.push('🚀 Innovation-Focused');
+            if (metrics.sensingRatio > 60) badges.push('🔧 Practical');
+            
+            // Add dominant profile badge
+            if (metrics.dominantProfile) {
+                const profileBadges = {
+                    'Strategist': '🎯 Strategic',
+                    'Innovator': '💡 Creative',
+                    'Architect': '🏗️ Systematic',
+                    'Advisor': '🤲 Supportive',
+                    'Champion': '🏆 Motivational'
+                };
+                if (profileBadges[metrics.dominantProfile]) {
+                    badges.push(profileBadges[metrics.dominantProfile]);
+                }
+            }
+            
+            return badges;
+        }
+
+        function updateCharts(metrics) {
+            // Destroy existing charts if they exist
+            if (profileChart) profileChart.destroy();
+            if (dimensionsChart) dimensionsChart.destroy();
+            
+            // Profile Distribution Chart
+            const profileCtx = document.getElementById('profileChart').getContext('2d');
+            const profileLabels = Object.keys(metrics.profileCounts);
+            const profileData = Object.values(metrics.profileCounts);
+            
+            profileChart = new Chart(profileCtx, {
+                type: 'bar',
+                data: {
+                    labels: profileLabels,
+                    datasets: [{
+                        label: 'Count',
+                        data: profileData,
+                        backgroundColor: profileLabels.map((_, i) => 
+                            `hsla(${180 + i * 30}, 70%, 50%, 0.8)`
+                        ),
+                        borderColor: profileLabels.map((_, i) => 
+                            `hsla(${180 + i * 30}, 70%, 40%, 1)`
+                        ),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Personality Dimensions Chart
+            const dimensionsCtx = document.getElementById('dimensionsChart').getContext('2d');
+            dimensionsChart = new Chart(dimensionsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Thinking', 'Feeling', 'Extrovert', 'Introvert', 'Judging', 'Perceiving', 'Intuition', 'Sensing'],
+                    datasets: [{
+                        data: [
+                            metrics.thinkingRatio,
+                            metrics.feelingRatio,
+                            metrics.extrovertRatio,
+                            metrics.introvertRatio,
+                            metrics.judgingRatio,
+                            metrics.perceivingRatio,
+                            metrics.intuitionRatio,
+                            metrics.sensingRatio
+                        ],
+                        backgroundColor: [
+                            '#009ba7', '#d7414f',
+                            '#4CAF50', '#FF9800',
+                            '#2196F3', '#9C27B0',
+                            '#00BCD4', '#CDDC39'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRecommendations(metrics) {
+            // Generate dynamic recommendations based on metrics
+            const contentRecs = generateContentRecommendations(metrics);
+            const spaceRecs = generateSpaceRecommendations(metrics);
+            const agendaRecs = generateAgendaRecommendations(metrics);
+            const engagementRecs = generateEngagementRecommendations(metrics);
+            
+            // Update the DOM
+            document.getElementById('contentRecs').innerHTML = contentRecs.map(rec => 
+                `<div class="rec-item">
+                    <div class="rec-item-title">${rec.title}</div>
+                    <div class="rec-item-text">${rec.text}</div>
+                </div>`
+            ).join('');
+            
+            document.getElementById('spaceRecs').innerHTML = spaceRecs.map(rec => 
+                `<div class="rec-item">
+                    <div class="rec-item-title">${rec.title}</div>
+                    <div class="rec-item-text">${rec.text}</div>
+                </div>`
+            ).join('');
+            
+            document.getElementById('agendaRecs').innerHTML = agendaRecs.map(rec => 
+                `<div class="rec-item">
+                    <div class="rec-item-title">${rec.title}</div>
+                    <div class="rec-item-text">${rec.text}</div>
+                </div>`
+            ).join('');
+            
+            document.getElementById('engagementRecs').innerHTML = engagementRecs.map(rec => 
+                `<div class="rec-item">
+                    <div class="rec-item-title">${rec.title}</div>
+                    <div class="rec-item-text">${rec.text}</div>
+                </div>`
+            ).join('');
+        }
+
+        function generateContentRecommendations(metrics) {
+            const recs = [];
+            
+            if (metrics.thinkingRatio > 70) {
+                recs.push({
+                    title: '📈 Data-Rich Presentations',
+                    text: `With ${metrics.thinkingRatio}% thinking types, incorporate case studies with metrics, ROI analyses, and quantifiable outcomes.`
+                });
+                recs.push({
+                    title: '📊 Evidence-Based Content',
+                    text: 'Include peer-reviewed studies, industry benchmarks, and empirical evidence to support key points.'
+                });
+            }
+            
+            if (metrics.feelingRatio > 60) {
+                recs.push({
+                    title: '❤️ Human Stories',
+                    text: `With ${metrics.feelingRatio}% feeling types, include personal success stories and emotional narratives.`
+                });
+                recs.push({
+                    title: '🤝 Values-Driven Content',
+                    text: 'Connect content to personal values and organizational mission for deeper resonance.'
+                });
+            }
+            
+            if (metrics.intuitionRatio > 60) {
+                recs.push({
+                    title: '🔮 Future-Focused Topics',
+                    text: `${metrics.intuitionRatio}% intuitive preference means emphasis on innovation and future possibilities will resonate.`
+                });
+                recs.push({
+                    title: '💡 Big Picture Thinking',
+                    text: 'Present strategic frameworks and conceptual models that connect disparate ideas.'
+                });
+            }
+            
+            if (metrics.sensingRatio > 60) {
+                recs.push({
+                    title: '🔧 Practical Applications',
+                    text: `With ${metrics.sensingRatio}% sensing preference, focus on concrete examples and hands-on demonstrations.`
+                });
+                recs.push({
+                    title: '📋 Step-by-Step Guides',
+                    text: 'Provide detailed implementation guides and practical toolkits attendees can use immediately.'
+                });
+            }
+            
+            // Add general recommendations
+            recs.push({
+                title: '🎯 Problem-Solution Format',
+                text: 'Structure sessions around real challenges and practical solutions relevant to your audience.'
+            });
+            
+            recs.push({
+                title: '⚡ Interactive Elements',
+                text: 'Include polls, Q&A sessions, and breakout discussions to maintain engagement.'
+            });
+            
+            return recs;
+        }
+
+        function generateSpaceRecommendations(metrics) {
+            const recs = [];
+            
+            if (metrics.extrovertRatio > 60) {
+                recs.push({
+                    title: '🤝 Collaborative Spaces',
+                    text: `With ${metrics.extrovertRatio}% extroverts, design open areas for networking and group activities.`
+                });
+                recs.push({
+                    title: '🎪 Social Hubs',
+                    text: 'Create central gathering spaces with comfortable seating for spontaneous conversations.'
+                });
+            }
+            
+            if (metrics.introvertRatio > 40) {
+                recs.push({
+                    title: '🧘 Quiet Zones',
+                    text: `For the ${metrics.introvertRatio}% introverts, provide quiet spaces for reflection and focused work.`
+                });
+                recs.push({
+                    title: '📚 Private Work Areas',
+                    text: 'Include individual workstations with privacy screens for deep focus sessions.'
+                });
+            }
+            
+            if (metrics.judgingRatio > 60) {
+                recs.push({
+                    title: '📐 Structured Layout',
+                    text: 'Create clear zones with obvious purposes and well-marked navigation paths.'
+                });
+                recs.push({
+                    title: '🗺️ Clear Signage',
+                    text: 'Use comprehensive wayfinding and schedule displays to reduce uncertainty.'
+                });
+            }
+            
+            if (metrics.perceivingRatio > 60) {
+                recs.push({
+                    title: '🔄 Flexible Spaces',
+                    text: 'Design modular areas that can be reconfigured for different activities throughout the event.'
+                });
+                recs.push({
+                    title: '🎨 Creative Zones',
+                    text: 'Include informal spaces with writable walls and comfortable furniture for brainstorming.'
+                });
+            }
+            
+            // Universal recommendations
+            recs.push({
+                title: '📱 Tech Integration',
+                text: 'Provide ample charging stations and strong WiFi coverage throughout all areas.'
+            });
+            
+            recs.push({
+                title: '☕ Strategic Refreshments',
+                text: 'Position food and beverage stations to encourage movement and mixing between groups.'
+            });
+            
+            return recs;
+        }
+
+        function generateAgendaRecommendations(metrics) {
+            const recs = [];
+            
+            if (metrics.judgingRatio > 60) {
+                recs.push({
+                    title: '⏰ Structured Timeline',
+                    text: `With ${metrics.judgingRatio}% judging preference, maintain punctual starts and clear transitions.`
+                });
+                recs.push({
+                    title: '📅 Detailed Schedule',
+                    text: 'Share comprehensive agenda in advance with session descriptions and speaker bios.'
+                });
+            }
+            
+            if (metrics.perceivingRatio > 60) {
+                recs.push({
+                    title: '🔄 Flexible Blocks',
+                    text: `${metrics.perceivingRatio}% perceiving types appreciate optional sessions and choose-your-own paths.`
+                });
+                recs.push({
+                    title: '⚡ Spontaneous Elements',
+                    text: 'Include "unconference" slots where attendees can propose and lead discussions.'
+                });
+            }
+            
+            if (metrics.thinkingRatio > 60) {
+                recs.push({
+                    title: '🎓 Learning Tracks',
+                    text: 'Organize sessions by expertise level and topic depth for targeted learning.'
+                });
+                recs.push({
+                    title: '📊 Outcome-Focused',
+                    text: 'Clearly state learning objectives and takeaways for each session.'
+                });
+            }
+            
+            if (metrics.extrovertRatio > 60) {
+                recs.push({
+                    title: '🤝 Networking Time',
+                    text: 'Build in substantial breaks for networking and relationship building.'
+                });
+                recs.push({
+                    title: '👥 Group Activities',
+                    text: 'Include collaborative workshops and team challenges in the schedule.'
+                });
+            }
+            
+            // Balance recommendations
+            recs.push({
+                title: '⚖️ Energy Management',
+                text: 'Alternate high-energy sessions with reflective or educational content.'
+            });
+            
+            recs.push({
+                title: '🎯 Clear Objectives',
+                text: 'Start each day with goals and end with key takeaways summary.'
+            });
+            
+            return recs;
+        }
+
+        function generateEngagementRecommendations(metrics) {
+            const recs = [];
+            
+            if (metrics.extrovertRatio > 60) {
+                recs.push({
+                    title: '💬 Interactive Discussions',
+                    text: `With ${metrics.extrovertRatio}% extroverts, use audience response systems and live polling.`
+                });
+                recs.push({
+                    title: '🎤 Open Mic Sessions',
+                    text: 'Include opportunities for attendees to share insights and ask questions publicly.'
+                });
+            }
+            
+            if (metrics.introvertRatio > 40) {
+                recs.push({
+                    title: '📱 Digital Participation',
+                    text: `Enable ${metrics.introvertRatio}% introverts to engage via apps and anonymous Q&A.`
+                });
+                recs.push({
+                    title: '✍️ Written Contributions',
+                    text: 'Provide options for written feedback and asynchronous discussion boards.'
+                });
+            }
+            
+            if (metrics.thinkingRatio > 60) {
+                recs.push({
+                    title: '🏆 Challenges & Competitions',
+                    text: 'Include hackathons, case study competitions, or problem-solving challenges.'
+                });
+                recs.push({
+                    title: '📈 Leaderboards',
+                    text: 'Gamify learning with points, badges, and achievement tracking.'
+                });
+            }
+            
+            if (metrics.feelingRatio > 50) {
+                recs.push({
+                    title: '🤗 Community Building',
+                    text: 'Foster connections through shared experiences and collaborative projects.'
+                });
+                recs.push({
+                    title: '🎨 Creative Expression',
+                    text: 'Include artistic or creative activities that allow emotional expression.'
+                });
+            }
+            
+            if (metrics.intuitionRatio > 60) {
+                recs.push({
+                    title: '💡 Innovation Labs',
+                    text: 'Create spaces for brainstorming and exploring "what if" scenarios.'
+                });
+                recs.push({
+                    title: '🚀 Future Visioning',
+                    text: 'Include sessions on trend forecasting and strategic planning.'
+                });
+            }
+            
+            // Universal engagement tactics
+            recs.push({
+                title: '📲 Event App',
+                text: 'Deploy a mobile app for networking, scheduling, and real-time updates.'
+            });
+            
+            recs.push({
+                title: '🎁 Personalization',
+                text: 'Offer personalized agenda recommendations based on attendee profiles.'
+            });
+            
+            return recs;
+        }
+
+        function showTab(tabName) {
+            // Update button states
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update content visibility
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function loadSampleData() {
+            // Sample data based on the Excel structure
+            const sampleData = [
+                { Name: "Julie Hawkins", Feeling: 3, Thinking: 7, Introvert: 2, Extrovert: 8, Perceiving: 3, Judging: 7, Intution: 7, Sensing: 3, "Audience DNA Profile": "Strategist" },
+                { Name: "Paul Gibbons", Feeling: 2, Thinking: 8, Introvert: 4, Extrovert: 6, Perceiving: 6, Judging: 4, Intution: 8, Sensing: 2, "Audience DNA Profile": "Innovator" },
+                { Name: "Emily Middleton", Feeling: 1, Thinking: 9, Introvert: 3, Extrovert: 7, Perceiving: 2, Judging: 8, Intution: 6, Sensing: 4, "Audience DNA Profile": "Strategist" },
+                { Name: "Paul Van Eynde", Feeling: 2, Thinking: 8, Introvert: 5, Extrovert: 5, Perceiving: 7, Judging: 3, Intution: 8, Sensing: 2, "Audience DNA Profile": "Innovator" },
+                { Name: "Umar Gill", Feeling: 1, Thinking: 9, Introvert: 4, Extrovert: 6, Perceiving: 3, Judging: 7, Intution: 4, Sensing: 6, "Audience DNA Profile": "Architect" },
+                { Name: "Sarah Chen", Feeling: 6, Thinking: 4, Introvert: 6, Extrovert: 4, Perceiving: 5, Judging: 5, Intution: 7, Sensing: 3, "Audience DNA Profile": "Advisor" },
+                { Name: "Michael Roberts", Feeling: 3, Thinking: 7, Introvert: 3, Extrovert: 7, Perceiving: 4, Judging: 6, Intution: 5, Sensing: 5, "Audience DNA Profile": "Strategist" },
+                { Name: "Lisa Anderson", Feeling: 7, Thinking: 3, Introvert: 5, Extrovert: 5, Perceiving: 6, Judging: 4, Intution: 6, Sensing: 4, "Audience DNA Profile": "Champion" },
+                { Name: "David Kim", Feeling: 2, Thinking: 8, Introvert: 7, Extrovert: 3, Perceiving: 3, Judging: 7, Intution: 8, Sensing: 2, "Audience DNA Profile": "Architect" },
+                { Name: "Jennifer Walsh", Feeling: 4, Thinking: 6, Introvert: 4, Extrovert: 6, Perceiving: 5, Judging: 5, Intution: 7, Sensing: 3, "Audience DNA Profile": "Strategist" },
+                { Name: "Robert Taylor", Feeling: 1, Thinking: 9, Introvert: 2, Extrovert: 8, Perceiving: 2, Judging: 8, Intution: 6, Sensing: 4, "Audience DNA Profile": "Strategist" },
+                { Name: "Maria Garcia", Feeling: 8, Thinking: 2, Introvert: 6, Extrovert: 4, Perceiving: 7, Judging: 3, Intution: 5, Sensing: 5, "Audience DNA Profile": "Advisor" },
+                { Name: "James Wilson", Feeling: 3, Thinking: 7, Introvert: 3, Extrovert: 7, Perceiving: 4, Judging: 6, Intution: 8, Sensing: 2, "Audience DNA Profile": "Innovator" },
+                { Name: "Susan Martinez", Feeling: 5, Thinking: 5, Introvert: 5, Extrovert: 5, Perceiving: 6, Judging: 4, Intution: 6, Sensing: 4, "Audience DNA Profile": "Champion" },
+                { Name: "Thomas Brown", Feeling: 2, Thinking: 8, Introvert: 4, Extrovert: 6, Perceiving: 3, Judging: 7, Intution: 7, Sensing: 3, "Audience DNA Profile": "Strategist" },
+                { Name: "Patricia Davis", Feeling: 6, Thinking: 4, Introvert: 7, Extrovert: 3, Perceiving: 5, Judging: 5, Intution: 4, Sensing: 6, "Audience DNA Profile": "Advisor" },
+                { Name: "Christopher Lee", Feeling: 1, Thinking: 9, Introvert: 2, Extrovert: 8, Perceiving: 2, Judging: 8, Intution: 9, Sensing: 1, "Audience DNA Profile": "Innovator" },
+                { Name: "Nancy White", Feeling: 7, Thinking: 3, Introvert: 6, Extrovert: 4, Perceiving: 7, Judging: 3, Intution: 5, Sensing: 5, "Audience DNA Profile": "Champion" },
+                { Name: "Daniel Harris", Feeling: 3, Thinking: 7, Introvert: 4, Extrovert: 6, Perceiving: 4, Judging: 6, Intution: 6, Sensing: 4, "Audience DNA Profile": "Strategist" },
+                { Name: "Karen Clark", Feeling: 5, Thinking: 5, Introvert: 5, Extrovert: 5, Perceiving: 5, Judging: 5, Intution: 7, Sensing: 3, "Audience DNA Profile": "Innovator" }
+            ];
+            
+            processData(sampleData);
+            
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.className = 'status-message success';
+            statusMessage.textContent = 'Sample data loaded successfully!';
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
