@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Intelligence Hub | Live Group</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --vermilion: #d7414f;
+            --vermilion-light: #ff6b77;
+            --teal: #009ba7;
+            --teal-light: #00c4d4;
+            --plum: #381e38;
+            --plum-light: #5a3a5a;
+            --success: #00c851;
+            --success-light: #e8f5e9;
+            --warning: #ffbb33;
+            --warning-light: #fff8e1;
+            --bg-cream: #faf9f7;
+            --bg-white: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-muted: #666666;
+            --text-light: #999999;
+            --border-subtle: #e8e6e3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-cream);
+            color: var(--text-dark);
+            min-height: 100vh;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        /* Mode Indicator Bar */
+        .mode-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--plum);
+            transition: all 0.3s ease;
+        }
+
+        .mode-bar.evaluation { background: var(--teal); }
+
+        .mode-bar-inner {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 8px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mode-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .mode-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--vermilion);
+            animation: pulse 2s infinite;
+        }
+
+        .mode-bar.evaluation .mode-dot {
+            background: var(--success);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        .mode-label {
+            font-weight: 600;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 3px;
+        }
+
+        .mode-toggle button {
+            padding: 6px 16px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .mode-toggle button.active {
+            background: white;
+            color: var(--plum);
+        }
+
+        .mode-bar.evaluation .mode-toggle button.active { color: var(--teal); }
+
+        /* Main Container */
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 56px 24px 40px;
+        }
+
+        /* Header Row */
+        .header-row {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-top: 12px;
+        }
+
+        .logo { height: 36px; width: auto; }
+
+        .header-text h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--plum);
+        }
+
+        .header-text .tagline {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .event-meta { text-align: right; }
+
+        .event-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--plum);
+        }
+
+        .event-details {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* Top Summary Row - Banner + Key Metrics side by side */
+        .summary-row {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1000px) {
+            .summary-row { grid-template-columns: 1fr; }
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, var(--plum) 0%, var(--plum-light) 100%);
+            border-radius: 12px;
+            padding: 24px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+
+        .score-card.evaluation {
+            background: linear-gradient(135deg, var(--teal) 0%, #00798a 100%);
+        }
+
+        .score-label-top {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .score-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .score-subtitle {
+            font-size: 12px;
+            opacity: 0.85;
+            margin-top: 8px;
+            max-width: 200px;
+        }
+
+        /* Metrics Grid - Compact */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 1200px) {
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .metric-card {
+            background: var(--bg-white);
+            border-radius: 10px;
+            padding: 16px;
+            position: relative;
+            border: 1px solid var(--border-subtle);
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .metric-card.status-excellent::before { background: var(--success); }
+        .metric-card.status-good::before { background: var(--teal); }
+        .metric-card.status-warning::before { background: var(--warning); }
+        .metric-card.status-tracking::before { background: linear-gradient(90deg, var(--vermilion), var(--teal)); }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-muted);
+        }
+
+        .metric-trend {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .trend-up { background: var(--success-light); color: #2e7d32; }
+        .trend-down { background: #ffebee; color: #c62828; }
+        .trend-target { background: #e3f2fd; color: #1565c0; }
+
+        .metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--plum);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .metric-context {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .metric-progress {
+            height: 4px;
+            background: var(--border-subtle);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .metric-progress-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.8s ease-out;
+        }
+
+        .metric-progress-fill.excellent { background: linear-gradient(90deg, var(--success), #4caf50); }
+        .metric-progress-fill.good { background: linear-gradient(90deg, var(--teal), var(--teal-light)); }
+        .metric-progress-fill.warning { background: linear-gradient(90deg, var(--warning), #ffc107); }
+        .metric-progress-fill.tracking { background: linear-gradient(90deg, var(--vermilion), var(--teal)); }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        /* Three Column Layout */
+        .three-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1100px) {
+            .three-col { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 700px) {
+            .three-col { grid-template-columns: 1fr; }
+        }
+
+        /* Section Titles - Compact */
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--plum);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title span { font-size: 16px; }
+
+        .section-badge {
+            font-size: 10px;
+            padding: 3px 8px;
+            background: var(--teal);
+            color: white;
+            border-radius: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-left: auto;
+        }
+
+        /* Chart Cards - Compact */
+        .chart-card {
+            background: var(--bg-white);
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .chart-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--plum);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-title span { font-size: 14px; }
+
+        canvas { max-height: 200px; }
+
+        /* Data Table - Compact */
+        .data-table-wrapper {
+            background: var(--bg-white);
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table thead { background: var(--bg-cream); }
+
+        .data-table th {
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .data-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .data-table tbody tr:hover { background: rgba(0, 155, 167, 0.02); }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-badge.excellent { background: var(--success-light); color: #2e7d32; }
+        .status-badge.good { background: #e0f2f1; color: #00695c; }
+        .status-badge.on-track { background: #e3f2fd; color: #1565c0; }
+        .status-badge.at-risk { background: var(--warning-light); color: #e65100; }
+
+        /* Recommendations - Compact Grid */
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 1000px) {
+            .rec-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .rec-grid { grid-template-columns: 1fr; }
+        }
+
+        .rec-card {
+            background: var(--bg-white);
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid var(--border-subtle);
+            border-left: 3px solid var(--teal);
+            transition: all 0.2s ease;
+        }
+
+        .rec-card:hover {
+            transform: translateX(3px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+        }
+
+        .rec-card.priority-high { border-left-color: var(--vermilion); }
+        .rec-card.priority-medium { border-left-color: var(--teal); }
+        .rec-card.priority-low { border-left-color: var(--plum); }
+
+        .rec-priority {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .rec-card.priority-high .rec-priority { color: var(--vermilion); }
+        .rec-card.priority-medium .rec-priority { color: var(--teal); }
+        .rec-card.priority-low .rec-priority { color: var(--plum); }
+
+        .rec-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--plum);
+            margin-bottom: 4px;
+        }
+
+        .rec-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .rec-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .rec-tag {
+            font-size: 10px;
+            padding: 2px 8px;
+            background: rgba(0, 155, 167, 0.1);
+            color: var(--teal);
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        /* AudienceDNA Section - Compact */
+        .audience-dna-section {
+            background: var(--bg-white);
+            border-radius: 10px;
+            border: 2px dashed var(--border-subtle);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .audience-dna-section.active {
+            border: 2px solid var(--teal);
+        }
+
+        .dna-header {
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .dna-header:hover { background: rgba(0, 155, 167, 0.02); }
+
+        .dna-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dna-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--vermilion), var(--teal));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .dna-title-group h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--plum);
+        }
+
+        .dna-title-group p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .dna-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dna-status {
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 3px 10px;
+            background: var(--bg-cream);
+            border-radius: 10px;
+        }
+
+        .dna-chevron {
+            width: 24px;
+            height: 24px;
+            background: var(--bg-cream);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .audience-dna-section.active .dna-chevron { transform: rotate(180deg); }
+
+        .dna-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .audience-dna-section.active .dna-content { max-height: 1500px; }
+
+        .dna-content-inner { padding: 0 20px 20px; }
+
+        /* DNA Layout - More Compact */
+        .dna-top-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 800px) {
+            .dna-top-row { grid-template-columns: 1fr; }
+        }
+
+        .dna-insight {
+            background: linear-gradient(135deg, var(--teal), #00798a);
+            color: white;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .dna-insight h4 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dna-insight p {
+            opacity: 0.95;
+            line-height: 1.5;
+            font-size: 12px;
+        }
+
+        .dna-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .dna-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .dna-metrics-card {
+            background: var(--bg-cream);
+            border-radius: 10px;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .dna-metric {
+            text-align: center;
+        }
+
+        .dna-metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--vermilion), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dna-metric-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .dna-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 800px) {
+            .dna-charts { grid-template-columns: 1fr; }
+        }
+
+        .dna-chart-card {
+            background: var(--bg-cream);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        /* Next Steps - Inline */
+        .next-steps {
+            background: linear-gradient(135deg, var(--plum), #1a0f1a);
+            border-radius: 10px;
+            padding: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .next-steps h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .next-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 1000px) {
+            .next-steps-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .next-steps-grid { grid-template-columns: 1fr; }
+        }
+
+        .next-step {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .next-step-num {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            background: var(--teal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        .next-step p {
+            font-size: 12px;
+            opacity: 0.95;
+            line-height: 1.4;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .footer-brand {
+            font-weight: 600;
+            color: var(--plum);
+        }
+
+        /* Mode visibility */
+        .planning-only { display: block; }
+        .evaluation-only { display: none; }
+        body.evaluation-mode .planning-only { display: none; }
+        body.evaluation-mode .evaluation-only { display: block; }
+
+        /* Success highlights - compact inline */
+        .success-strip {
+            background: var(--success-light);
+            border: 1px solid #c8e6c9;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .success-strip-title {
+            font-weight: 600;
+            color: #2e7d32;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .success-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #1b5e20;
+        }
+
+        .success-item::before {
+            content: '✓';
+            color: #2e7d32;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mode Bar -->
+    <div class="mode-bar" id="modeBar">
+        <div class="mode-bar-inner">
+            <div class="mode-indicator">
+                <div class="mode-dot"></div>
+                <span class="mode-label" id="modeLabel">Planning Mode</span>
+            </div>
+            <div class="mode-toggle">
+                <button class="active" id="planningBtn" onclick="setMode('planning')">Pre-Event</button>
+                <button id="evaluationBtn" onclick="setMode('evaluation')">Post-Event</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <!-- Header Row -->
+        <div class="header-row">
+            <img src="https://livegroup.co.uk/wp-content/themes/live-group-2023-custom/images/live-group-logo-vermilion.svg" alt="Live Group" class="logo">
+            <div class="header-text">
+                <h1>Event Intelligence Hub</h1>
+                <p class="tagline">Single source of truth for event success</p>
+            </div>
+            <div class="event-meta">
+                <div class="event-name">Tech Leaders Summit 2025</div>
+                <div class="event-details">14-15 Nov 2025 · ExCeL London</div>
+            </div>
+        </div>
+
+        <!-- Summary Row: Score + Metrics -->
+        <div class="summary-row">
+            <!-- Planning Score Card -->
+            <div class="score-card planning-only" id="planningScore">
+                <div class="score-label-top">Readiness Score</div>
+                <div class="score-value">76%</div>
+                <div class="score-subtitle">On track · 3 weeks to event</div>
+            </div>
+            <!-- Evaluation Score Card -->
+            <div class="score-card evaluation evaluation-only" id="evaluationScore">
+                <div class="score-label-top">Success Score</div>
+                <div class="score-value">92%</div>
+                <div class="score-subtitle">Exceptional performance achieved</div>
+            </div>
+
+            <!-- Planning Metrics -->
+            <div class="metrics-grid planning-only">
+                <div class="metric-card status-tracking">
+                    <div class="metric-header">
+                        <span class="metric-label">Registrations</span>
+                        <span class="metric-trend trend-target">Target: 400</span>
+                    </div>
+                    <div class="metric-value">342</div>
+                    <div class="metric-context">86% of target</div>
+                    <div class="metric-progress"><div class="metric-progress-fill tracking" style="width: 86%;"></div></div>
+                </div>
+                <div class="metric-card status-good">
+                    <div class="metric-header">
+                        <span class="metric-label">Conversion</span>
+                        <span class="metric-trend trend-up">↑ 5%</span>
+                    </div>
+                    <div class="metric-value">78%</div>
+                    <div class="metric-context">Invite to registration</div>
+                    <div class="metric-progress"><div class="metric-progress-fill good" style="width: 78%;"></div></div>
+                </div>
+                <div class="metric-card status-tracking">
+                    <div class="metric-header">
+                        <span class="metric-label">Session Bookings</span>
+                        <span class="metric-trend trend-target">Avg/delegate</span>
+                    </div>
+                    <div class="metric-value">4.2</div>
+                    <div class="metric-context">1,437 total</div>
+                    <div class="metric-progress"><div class="metric-progress-fill tracking" style="width: 84%;"></div></div>
+                </div>
+                <div class="metric-card status-warning">
+                    <div class="metric-header">
+                        <span class="metric-label">Budget</span>
+                        <span class="metric-trend trend-target">£140k target</span>
+                    </div>
+                    <div class="metric-value">68%</div>
+                    <div class="metric-context">£95.2k committed</div>
+                    <div class="metric-progress"><div class="metric-progress-fill warning" style="width: 68%;"></div></div>
+                </div>
+            </div>
+
+            <!-- Evaluation Metrics -->
+            <div class="metrics-grid evaluation-only">
+                <div class="metric-card status-excellent">
+                    <div class="metric-header">
+                        <span class="metric-label">Attendance</span>
+                        <span class="metric-trend trend-up">↑ 18%</span>
+                    </div>
+                    <div class="metric-value">89%</div>
+                    <div class="metric-context">356 of 400</div>
+                    <div class="metric-progress"><div class="metric-progress-fill excellent" style="width: 89%;"></div></div>
+                </div>
+                <div class="metric-card status-excellent">
+                    <div class="metric-header">
+                        <span class="metric-label">Engagement</span>
+                        <span class="metric-trend trend-up">↑ 23%</span>
+                    </div>
+                    <div class="metric-value">94%</div>
+                    <div class="metric-context">Exceptional</div>
+                    <div class="metric-progress"><div class="metric-progress-fill excellent" style="width: 94%;"></div></div>
+                </div>
+                <div class="metric-card status-excellent">
+                    <div class="metric-header">
+                        <span class="metric-label">Satisfaction</span>
+                        <span class="metric-trend trend-up">↑ 12%</span>
+                    </div>
+                    <div class="metric-value">4.8/5</div>
+                    <div class="metric-context">Post-event survey</div>
+                    <div class="metric-progress"><div class="metric-progress-fill excellent" style="width: 96%;"></div></div>
+                </div>
+                <div class="metric-card status-good">
+                    <div class="metric-header">
+                        <span class="metric-label">Cost/Delegate</span>
+                        <span class="metric-trend trend-up">↓ £8</span>
+                    </div>
+                    <div class="metric-value">£342</div>
+                    <div class="metric-context">Under budget</div>
+                    <div class="metric-progress"><div class="metric-progress-fill good" style="width: 85%;"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Strip (Evaluation only) -->
+        <div class="success-strip evaluation-only">
+            <span class="success-strip-title">✨ Key Wins</span>
+            <span class="success-item">94% engagement rate</span>
+            <span class="success-item">4.8/5 satisfaction</span>
+            <span class="success-item">3.8M social reach</span>
+            <span class="success-item">£8 under budget per head</span>
+            <span class="success-item">Speaker quality 4.9/5</span>
+        </div>
+
+        <!-- Charts + Table Row -->
+        <div class="two-col">
+            <!-- Left: Charts -->
+            <div>
+                <div class="section-title"><span>📊</span> Performance Charts</div>
+                <div class="two-col" style="margin-bottom: 0;">
+                    <!-- Planning Charts -->
+                    <div class="chart-card planning-only">
+                        <div class="chart-title"><span>📈</span> Registration Momentum</div>
+                        <canvas id="registrationChart"></canvas>
+                    </div>
+                    <div class="chart-card planning-only">
+                        <div class="chart-title"><span>🎯</span> Session Popularity</div>
+                        <canvas id="sessionPopularityChart"></canvas>
+                    </div>
+                    <!-- Evaluation Charts -->
+                    <div class="chart-card evaluation-only">
+                        <div class="chart-title"><span>📈</span> Trend Analysis</div>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                    <div class="chart-card evaluation-only">
+                        <div class="chart-title"><span>🎯</span> Session Performance</div>
+                        <canvas id="sessionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Table -->
+            <div>
+                <div class="section-title">
+                    <span>📋</span> Detailed Breakdown
+                    <span class="section-badge planning-only">Live</span>
+                    <span class="section-badge evaluation-only">Final</span>
+                </div>
+                
+                <!-- Planning Table -->
+                <div class="data-table-wrapper planning-only">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Current</th>
+                                <th>Target</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Registrations</strong></td><td>342</td><td>400</td><td><span class="status-badge on-track">On Track</span></td></tr>
+                            <tr><td><strong>VIP Attendees</strong></td><td>28</td><td>35</td><td><span class="status-badge on-track">On Track</span></td></tr>
+                            <tr><td><strong>Keynote Capacity</strong></td><td>342</td><td>350</td><td><span class="status-badge excellent">Excellent</span></td></tr>
+                            <tr><td><strong>Workshop Bookings</strong></td><td>856</td><td>1,000</td><td><span class="status-badge on-track">On Track</span></td></tr>
+                            <tr><td><strong>Sponsor Activations</strong></td><td>12</td><td>15</td><td><span class="status-badge at-risk">Action Needed</span></td></tr>
+                            <tr><td><strong>Catering</strong></td><td>100%</td><td>100%</td><td><span class="status-badge excellent">Complete</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Evaluation Table -->
+                <div class="data-table-wrapper evaluation-only">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Actual</th>
+                                <th>Target</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><strong>Attendance</strong></td><td>356</td><td>320</td><td><span class="status-badge excellent">111%</span></td></tr>
+                            <tr><td><strong>Reg. Conversion</strong></td><td>89%</td><td>85%</td><td><span class="status-badge excellent">105%</span></td></tr>
+                            <tr><td><strong>Participation</strong></td><td>94%</td><td>75%</td><td><span class="status-badge excellent">125%</span></td></tr>
+                            <tr><td><strong>Content Hours</strong></td><td>52</td><td>45</td><td><span class="status-badge excellent">116%</span></td></tr>
+                            <tr><td><strong>Gross Margin</strong></td><td>38%</td><td>35%</td><td><span class="status-badge excellent">109%</span></td></tr>
+                            <tr><td><strong>NPS</strong></td><td>78</td><td>65</td><td><span class="status-badge excellent">120%</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- AudienceDNA Section -->
+        <section class="audience-dna-section" id="audienceDnaSection">
+            <div class="dna-header" onclick="toggleDNA()">
+                <div class="dna-header-left">
+                    <div class="dna-icon">🧬</div>
+                    <div class="dna-title-group">
+                        <h3>AudienceDNA Intelligence</h3>
+                        <p>Deep audience profiling & personalisation insights</p>
+                    </div>
+                </div>
+                <div class="dna-toggle">
+                    <span class="dna-status">Premium Add-on</span>
+                    <div class="dna-chevron">▼</div>
+                </div>
+            </div>
+            <div class="dna-content">
+                <div class="dna-content-inner">
+                    <div class="dna-top-row">
+                        <div class="dna-insight">
+                            <h4><span>⚡</span> Audience Snapshot</h4>
+                            <p>Your audience is predominantly analytical, strategic thinkers who value structure and logical approaches. With 70.6% preferring judging over perceiving, they appreciate well-organised agendas and clear outcomes.</p>
+                            <div class="dna-badges">
+                                <span class="dna-badge">🎯 Goal-Oriented</span>
+                                <span class="dna-badge">📊 Data-Driven</span>
+                                <span class="dna-badge">🚀 Innovation-Focused</span>
+                            </div>
+                        </div>
+                        <div class="dna-metrics-card">
+                            <div class="dna-metric">
+                                <div class="dna-metric-value">854</div>
+                                <div class="dna-metric-label">Profiles</div>
+                            </div>
+                            <div class="dna-metric">
+                                <div class="dna-metric-value">27.1%</div>
+                                <div class="dna-metric-label">Strategists</div>
+                            </div>
+                            <div class="dna-metric">
+                                <div class="dna-metric-value">86:14</div>
+                                <div class="dna-metric-label">Think/Feel</div>
+                            </div>
+                            <div class="dna-metric">
+                                <div class="dna-metric-value">62.4%</div>
+                                <div class="dna-metric-label">Extroverts</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dna-charts">
+                        <div class="dna-chart-card">
+                            <div class="chart-title"><span>📊</span> Profile Distribution</div>
+                            <canvas id="profileChart"></canvas>
+                        </div>
+                        <div class="dna-chart-card">
+                            <div class="chart-title"><span>⚖️</span> Personality Dimensions</div>
+                            <canvas id="dimensionsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="section-title"><span>💡</span> Personalisation Recommendations</div>
+                    <div class="rec-grid">
+                        <div class="rec-card priority-high">
+                            <div class="rec-priority">Content</div>
+                            <div class="rec-title">Data-Rich Presentations</div>
+                            <div class="rec-text">Include case studies, benchmarks, and ROI frameworks.</div>
+                            <div class="rec-tags"><span class="rec-tag">High Impact</span></div>
+                        </div>
+                        <div class="rec-card priority-medium">
+                            <div class="rec-priority">Format</div>
+                            <div class="rec-title">Structured Workshops</div>
+                            <div class="rec-text">Design sessions with clear agendas and practical takeaways.</div>
+                            <div class="rec-tags"><span class="rec-tag">Actionable</span></div>
+                        </div>
+                        <div class="rec-card priority-medium">
+                            <div class="rec-priority">Networking</div>
+                            <div class="rec-title">Strategic Matchmaking</div>
+                            <div class="rec-text">Use profile data to suggest meaningful connections.</div>
+                            <div class="rec-tags"><span class="rec-tag">Personalised</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendations -->
+        <div class="section-title">
+            <span>💡</span>
+            <span class="planning-only">Priority Actions</span>
+            <span class="evaluation-only">Next Event Recommendations</span>
+        </div>
+
+        <!-- Planning Recommendations -->
+        <div class="rec-grid planning-only" style="margin-bottom: 20px;">
+            <div class="rec-card priority-high">
+                <div class="rec-priority">High Priority</div>
+                <div class="rec-title">Accelerate Registrations</div>
+                <div class="rec-text">Targeted reminder campaign for 58 pending invitations.</div>
+                <div class="rec-tags"><span class="rec-tag">Marketing</span><span class="rec-tag">Conversion</span></div>
+            </div>
+            <div class="rec-card priority-high">
+                <div class="rec-priority">High Priority</div>
+                <div class="rec-title">Sponsor Activation</div>
+                <div class="rec-text">3 sponsor activations pending. Schedule follow-ups this week.</div>
+                <div class="rec-tags"><span class="rec-tag">Revenue</span></div>
+            </div>
+            <div class="rec-card priority-medium">
+                <div class="rec-priority">Medium</div>
+                <div class="rec-title">Workshop Capacity</div>
+                <div class="rec-text">Two workshops at 95% capacity. Consider additional sessions.</div>
+                <div class="rec-tags"><span class="rec-tag">Operations</span></div>
+            </div>
+            <div class="rec-card priority-medium">
+                <div class="rec-priority">Medium</div>
+                <div class="rec-title">App Engagement</div>
+                <div class="rec-text">45% app adoption. Push notification campaign recommended.</div>
+                <div class="rec-tags"><span class="rec-tag">Technology</span></div>
+            </div>
+            <div class="rec-card priority-low">
+                <div class="rec-priority">Future</div>
+                <div class="rec-title">Content Capture</div>
+                <div class="rec-text">Arrange photography and videography for post-event assets.</div>
+                <div class="rec-tags"><span class="rec-tag">Marketing</span></div>
+            </div>
+            <div class="rec-card priority-low">
+                <div class="rec-priority">Future</div>
+                <div class="rec-title">Survey Prep</div>
+                <div class="rec-text">Finalise post-event survey: NPS, session quality, venue.</div>
+                <div class="rec-tags"><span class="rec-tag">Feedback</span></div>
+            </div>
+        </div>
+
+        <!-- Evaluation Recommendations -->
+        <div class="rec-grid evaluation-only" style="margin-bottom: 20px;">
+            <div class="rec-card priority-high">
+                <div class="rec-priority">High Priority</div>
+                <div class="rec-title">Scale Success Formula</div>
+                <div class="rec-text">Document the engagement strategy that achieved 89% attendance.</div>
+                <div class="rec-tags"><span class="rec-tag">Best Practice</span></div>
+            </div>
+            <div class="rec-card priority-high">
+                <div class="rec-priority">High Priority</div>
+                <div class="rec-title">Session Optimisation</div>
+                <div class="rec-text">Premium smaller venues for exclusive feel on popular sessions.</div>
+                <div class="rec-tags"><span class="rec-tag">Experience</span></div>
+            </div>
+            <div class="rec-card priority-medium">
+                <div class="rec-priority">Medium</div>
+                <div class="rec-title">Community Platform</div>
+                <div class="rec-text">Build on 94% engagement with year-round community.</div>
+                <div class="rec-tags"><span class="rec-tag">Long-term</span></div>
+            </div>
+            <div class="rec-card priority-medium">
+                <div class="rec-priority">Medium</div>
+                <div class="rec-title">Revenue Growth</div>
+                <div class="rec-text">Strong cost control enables premium VIP packages.</div>
+                <div class="rec-tags"><span class="rec-tag">Revenue</span></div>
+            </div>
+            <div class="rec-card priority-low">
+                <div class="rec-priority">Future</div>
+                <div class="rec-title">Social Amplification</div>
+                <div class="rec-text">3.8M reach shows potential for influencer partnerships.</div>
+                <div class="rec-tags"><span class="rec-tag">Brand</span></div>
+            </div>
+            <div class="rec-card priority-low">
+                <div class="rec-priority">Future</div>
+                <div class="rec-title">Innovation Lab</div>
+                <div class="rec-text">Pilot AR experiences or AI networking features.</div>
+                <div class="rec-tags"><span class="rec-tag">Innovation</span></div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="next-steps">
+            <h3>
+                <span>🚀</span>
+                <span class="planning-only">Immediate Actions</span>
+                <span class="evaluation-only">Next Steps</span>
+            </h3>
+            
+            <div class="next-steps-grid planning-only">
+                <div class="next-step"><div class="next-step-num">1</div><p>Send reminder to 58 pending invitations by Friday</p></div>
+                <div class="next-step"><div class="next-step-num">2</div><p>Confirm 3 remaining sponsor activations this week</p></div>
+                <div class="next-step"><div class="next-step-num">3</div><p>Review workshop capacity & open additional sessions</p></div>
+                <div class="next-step"><div class="next-step-num">4</div><p>Launch app download push notification campaign</p></div>
+            </div>
+
+            <div class="next-steps-grid evaluation-only">
+                <div class="next-step"><div class="next-step-num">1</div><p>Document best practices that achieved 92% score</p></div>
+                <div class="next-step"><div class="next-step-num">2</div><p>Create case study: 89% attendance, 94% engagement</p></div>
+                <div class="next-step"><div class="next-step-num">3</div><p>Develop premium packages based on success</p></div>
+                <div class="next-step"><div class="next-step-num">4</div><p>Schedule innovation workshop for future events</p></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span class="footer-brand">Live Group</span> · Full-Service Events Agency · Data-Driven Excellence<br>
+            <span style="opacity: 0.7;">© 2025 Live Group. All rights reserved.</span>
+        </footer>
+    </div>
+
+    <script>
+        function setMode(mode) {
+            const body = document.body;
+            const modeBar = document.getElementById('modeBar');
+            const modeLabel = document.getElementById('modeLabel');
+            const planningBtn = document.getElementById('planningBtn');
+            const evaluationBtn = document.getElementById('evaluationBtn');
+
+            if (mode === 'evaluation') {
+                body.classList.add('evaluation-mode');
+                modeBar.classList.add('evaluation');
+                modeLabel.textContent = 'Evaluation Mode';
+                planningBtn.classList.remove('active');
+                evaluationBtn.classList.add('active');
+                initEvaluationCharts();
+            } else {
+                body.classList.remove('evaluation-mode');
+                modeBar.classList.remove('evaluation');
+                modeLabel.textContent = 'Planning Mode';
+                planningBtn.classList.add('active');
+                evaluationBtn.classList.remove('active');
+                initPlanningCharts();
+            }
+        }
+
+        function toggleDNA() {
+            const section = document.getElementById('audienceDnaSection');
+            section.classList.toggle('active');
+            if (section.classList.contains('active')) initDNACharts();
+        }
+
+        const colors = {
+            vermilion: '#d7414f', teal: '#009ba7', plum: '#381e38',
+            success: '#00c851', vermilionLight: '#ff7582', tealLight: '#00c4d4', plumLight: '#5a3a5a'
+        };
+
+        let planningCharts = {}, evaluationCharts = {}, dnaCharts = {};
+
+        function initPlanningCharts() {
+            Object.values(evaluationCharts).forEach(c => c?.destroy());
+            evaluationCharts = {};
+
+            const regCtx = document.getElementById('registrationChart');
+            if (regCtx && !planningCharts.registration) {
+                planningCharts.registration = new Chart(regCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'],
+                        datasets: [{
+                            label: 'Actual', data: [45, 98, 156, 210, 265, 298, 325, 342],
+                            borderColor: colors.teal, backgroundColor: 'rgba(0,155,167,0.1)', tension: 0.4, fill: true
+                        }, {
+                            label: 'Target', data: [50, 100, 150, 200, 250, 300, 350, 400],
+                            borderColor: colors.vermilion, borderDash: [5, 5], tension: 0.4, fill: false
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } }, scales: { y: { beginAtZero: true, max: 450 } } }
+                });
+            }
+
+            const sessCtx = document.getElementById('sessionPopularityChart');
+            if (sessCtx && !planningCharts.sessions) {
+                planningCharts.sessions = new Chart(sessCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Keynote', 'AI Workshop', 'Panel', 'Tech Demo', 'Closing'],
+                        datasets: [
+                            { label: 'Bookings', data: [342, 185, 156, 142, 298], backgroundColor: colors.teal, borderRadius: 6 },
+                            { label: 'Capacity', data: [350, 200, 200, 150, 350], backgroundColor: 'rgba(0,155,167,0.2)', borderRadius: 6 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+        }
+
+        function initEvaluationCharts() {
+            Object.values(planningCharts).forEach(c => c?.destroy());
+            planningCharts = {};
+
+            const trendCtx = document.getElementById('trendChart');
+            if (trendCtx && !evaluationCharts.trend) {
+                evaluationCharts.trend = new Chart(trendCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Q4\'24', 'Q1\'25', 'Q2\'25', 'Q3\'25', 'Q4\'25'],
+                        datasets: [
+                            { label: 'Attendance', data: [72, 75, 79, 84, 89], borderColor: colors.teal, tension: 0.4 },
+                            { label: 'Engagement', data: [75, 80, 85, 89, 94], borderColor: colors.success, tension: 0.4 },
+                            { label: 'Satisfaction', data: [84, 87, 90, 93, 96], borderColor: colors.vermilion, tension: 0.4 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } }, scales: { y: { min: 60, max: 100, ticks: { callback: v => v + '%' } } } }
+                });
+            }
+
+            const sessionCtx = document.getElementById('sessionChart');
+            if (sessionCtx && !evaluationCharts.session) {
+                evaluationCharts.session = new Chart(sessionCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Keynotes', 'Workshops', 'Panels', 'Networking', 'Breakouts'],
+                        datasets: [
+                            { label: 'Attend', data: [96, 85, 88, 92, 78], backgroundColor: colors.teal, borderRadius: 6 },
+                            { label: 'Engage', data: [92, 96, 90, 94, 93], backgroundColor: colors.success, borderRadius: 6 },
+                            { label: 'Satisfy', data: [94, 92, 89, 93, 88], backgroundColor: colors.vermilion, borderRadius: 6 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } }, scales: { y: { max: 100, ticks: { callback: v => v + '%' } } } }
+                });
+            }
+        }
+
+        function initDNACharts() {
+            const profileCtx = document.getElementById('profileChart');
+            if (profileCtx && !dnaCharts.profile) {
+                dnaCharts.profile = new Chart(profileCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Strategist', 'Architect', 'Scholar', 'Innovator', 'Analyst', 'Others'],
+                        datasets: [{ data: [23, 12, 10, 10, 8, 22], backgroundColor: [colors.vermilion, colors.teal, colors.plum, colors.vermilionLight, colors.tealLight, colors.plumLight], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } } }
+                });
+            }
+
+            const dimCtx = document.getElementById('dimensionsChart');
+            if (dimCtx && !dnaCharts.dimensions) {
+                dnaCharts.dimensions = new Chart(dimCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Think/Feel', 'Extro/Intro', 'Judge/Perceive', 'Intuit/Sense'],
+                        datasets: [
+                            { label: 'Primary', data: [73, 53, 60, 57], backgroundColor: colors.teal, borderRadius: 6 },
+                            { label: 'Secondary', data: [12, 32, 25, 28], backgroundColor: colors.vermilion, borderRadius: 6 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initPlanningCharts);
+    </script>
+</body>
+</html>
