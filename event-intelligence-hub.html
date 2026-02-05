@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Intelligence Hub | Live Group</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --vermilion: #d7414f;
+            --vermilion-light: #ff6b77;
+            --teal: #009ba7;
+            --teal-light: #00c4d4;
+            --plum: #381e38;
+            --plum-light: #5a3a5a;
+            --success: #00c851;
+            --success-light: #e8f5e9;
+            --warning: #ffbb33;
+            --warning-light: #fff8e1;
+            --bg-cream: #faf9f7;
+            --bg-white: #ffffff;
+            --text-dark: #1a1a1a;
+            --text-muted: #666666;
+            --text-light: #999999;
+            --border-subtle: #e8e6e3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-cream);
+            color: var(--text-dark);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Mode Indicator Bar */
+        .mode-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: var(--plum);
+            padding: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mode-bar.evaluation {
+            background: var(--teal);
+        }
+
+        .mode-bar-inner {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 12px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mode-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .mode-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--vermilion);
+            animation: pulse 2s infinite;
+        }
+
+        .mode-bar.evaluation .mode-dot {
+            background: var(--success);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        .mode-label {
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .mode-toggle button {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: rgba(255,255,255,0.7);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-toggle button.active {
+            background: white;
+            color: var(--plum);
+        }
+
+        .mode-bar.evaluation .mode-toggle button.active {
+            color: var(--teal);
+        }
+
+        /* Main Container */
+        .dashboard {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 80px 40px 60px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 48px;
+            padding-top: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .logo {
+            height: 48px;
+            width: auto;
+        }
+
+        .header-text h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--plum);
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .header-text .tagline {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .event-meta {
+            text-align: right;
+        }
+
+        .event-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--plum);
+            margin-bottom: 4px;
+        }
+
+        .event-details {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* Value Banner */
+        .value-banner {
+            background: linear-gradient(135deg, var(--plum) 0%, var(--plum-light) 100%);
+            border-radius: 20px;
+            padding: 32px 40px;
+            margin-bottom: 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .value-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .value-banner.evaluation {
+            background: linear-gradient(135deg, var(--teal) 0%, #00798a 100%);
+        }
+
+        .value-content h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .value-content p {
+            opacity: 0.9;
+            font-size: 15px;
+            max-width: 500px;
+        }
+
+        .value-score {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+
+        /* Section Styling */
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--plum);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: var(--teal);
+            color: white;
+            border-radius: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+
+        .metric-card {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+
+        .metric-card.status-excellent::before { background: var(--success); }
+        .metric-card.status-good::before { background: var(--teal); }
+        .metric-card.status-warning::before { background: var(--warning); }
+        .metric-card.status-tracking::before { background: linear-gradient(90deg, var(--vermilion), var(--teal)); }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .metric-trend {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .trend-up { background: var(--success-light); color: #2e7d32; }
+        .trend-down { background: #ffebee; color: #c62828; }
+        .trend-target { background: #e3f2fd; color: #1565c0; }
+
+        .metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--plum);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .metric-context {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .metric-progress {
+            height: 6px;
+            background: var(--border-subtle);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .metric-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease-out;
+        }
+
+        .metric-progress-fill.excellent { background: linear-gradient(90deg, var(--success), #4caf50); }
+        .metric-progress-fill.good { background: linear-gradient(90deg, var(--teal), var(--teal-light)); }
+        .metric-progress-fill.warning { background: linear-gradient(90deg, var(--warning), #ffc107); }
+        .metric-progress-fill.tracking { background: linear-gradient(90deg, var(--vermilion), var(--teal)); }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+
+        .chart-card {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 28px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .chart-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--plum);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title span {
+            font-size: 18px;
+        }
+
+        /* Detailed Table */
+        .data-table-wrapper {
+            background: var(--bg-white);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+            overflow: hidden;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead {
+            background: var(--bg-cream);
+        }
+
+        .data-table th {
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(0, 155, 167, 0.03);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.excellent { background: var(--success-light); color: #2e7d32; }
+        .status-badge.good { background: #e0f2f1; color: #00695c; }
+        .status-badge.on-track { background: #e3f2fd; color: #1565c0; }
+        .status-badge.at-risk { background: var(--warning-light); color: #e65100; }
+
+        /* Recommendations */
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1000px) {
+            .recommendations-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .recommendations-grid { grid-template-columns: 1fr; }
+        }
+
+        .rec-card {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-subtle);
+            border-left: 4px solid var(--teal);
+            transition: all 0.3s ease;
+        }
+
+        .rec-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .rec-card.priority-high { border-left-color: var(--vermilion); }
+        .rec-card.priority-medium { border-left-color: var(--teal); }
+        .rec-card.priority-low { border-left-color: var(--plum); }
+
+        .rec-priority {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .rec-card.priority-high .rec-priority { color: var(--vermilion); }
+        .rec-card.priority-medium .rec-priority { color: var(--teal); }
+        .rec-card.priority-low .rec-priority { color: var(--plum); }
+
+        .rec-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--plum);
+            margin-bottom: 8px;
+        }
+
+        .rec-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .rec-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .rec-tag {
+            font-size: 11px;
+            padding: 4px 10px;
+            background: rgba(0, 155, 167, 0.1);
+            color: var(--teal);
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        /* AudienceDNA Section */
+        .audience-dna-section {
+            background: linear-gradient(135deg, #fdfcfb 0%, #f5f3f0 100%);
+            border-radius: 20px;
+            border: 2px dashed var(--border-subtle);
+            margin-bottom: 40px;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .audience-dna-section.active {
+            border: 2px solid var(--teal);
+            background: var(--bg-white);
+        }
+
+        .dna-header {
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .dna-header:hover {
+            background: rgba(0, 155, 167, 0.03);
+        }
+
+        .dna-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .dna-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--vermilion), var(--teal));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .dna-title-group h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--plum);
+        }
+
+        .dna-title-group p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .dna-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .dna-status {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .dna-chevron {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-cream);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .audience-dna-section.active .dna-chevron {
+            transform: rotate(180deg);
+        }
+
+        .dna-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+
+        .audience-dna-section.active .dna-content {
+            max-height: 2000px;
+        }
+
+        .dna-content-inner {
+            padding: 0 32px 32px;
+        }
+
+        /* DNA Insight Card */
+        .dna-insight {
+            background: linear-gradient(135deg, var(--teal), #00798a);
+            color: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .dna-insight h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dna-insight p {
+            opacity: 0.95;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .dna-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .dna-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* DNA Metrics */
+        .dna-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .dna-metrics { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .dna-metric {
+            background: var(--bg-cream);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .dna-metric-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--vermilion), var(--teal));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dna-metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* DNA Charts */
+        .dna-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .dna-charts { grid-template-columns: 1fr; }
+        }
+
+        .dna-chart-card {
+            background: var(--bg-cream);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        /* Next Steps */
+        .next-steps {
+            background: linear-gradient(135deg, var(--plum), #1a0f1a);
+            border-radius: 20px;
+            padding: 32px;
+            color: white;
+        }
+
+        .next-steps h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .next-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 1000px) {
+            .next-steps-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .next-steps-grid { grid-template-columns: 1fr; }
+        }
+
+        .next-step {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .next-step-num {
+            width: 28px;
+            height: 28px;
+            background: var(--teal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .next-step p {
+            font-size: 14px;
+            opacity: 0.95;
+            line-height: 1.5;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .footer-brand {
+            font-weight: 600;
+            color: var(--plum);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in {
+            animation: slideUp 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        /* Planning Mode Specific */
+        .planning-only { display: block; }
+        .evaluation-only { display: none; }
+
+        body.evaluation-mode .planning-only { display: none; }
+        body.evaluation-mode .evaluation-only { display: block; }
+
+        /* Hidden content toggle */
+        .content-hidden { display: none !important; }
+
+        canvas {
+            max-height: 260px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mode Bar -->
+    <div class="mode-bar" id="modeBar">
+        <div class="mode-bar-inner">
+            <div class="mode-indicator">
+                <div class="mode-dot"></div>
+                <span class="mode-label" id="modeLabel">Planning Mode</span>
+            </div>
+            <div class="mode-toggle">
+                <button class="active" id="planningBtn" onclick="setMode('planning')">Pre-Event</button>
+                <button id="evaluationBtn" onclick="setMode('evaluation')">Post-Event</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <!-- Header -->
+        <header class="header animate-in">
+            <div class="header-left">
+                <img src="https://livegroup.co.uk/wp-content/themes/live-group-2023-custom/images/live-group-logo-vermilion.svg" alt="Live Group" class="logo">
+                <div class="header-text">
+                    <h1>Event Intelligence Hub</h1>
+                    <p class="tagline">Your single source of truth for event success</p>
+                </div>
+            </div>
+            <div class="event-meta">
+                <div class="event-name">Tech Leaders Summit 2025</div>
+                <div class="event-details">14-15 November 2025 · ExCeL London</div>
+            </div>
+        </header>
+
+        <!-- Value Banner - Planning -->
+        <div class="value-banner planning-only animate-in delay-1" id="planningBanner">
+            <div class="value-content">
+                <h2>📊 Tracking to Target</h2>
+                <p>Your event is on track. All key indicators are trending positively with 3 weeks until event day. Focus on the highlighted action areas to maximise success.</p>
+            </div>
+            <div class="value-score">
+                <div class="score-value">76%</div>
+                <div class="score-label">Readiness Score</div>
+            </div>
+        </div>
+
+        <!-- Value Banner - Evaluation -->
+        <div class="value-banner evaluation evaluation-only animate-in delay-1" id="evaluationBanner">
+            <div class="value-content">
+                <h2>✨ Event Performance Report</h2>
+                <p>Your event delivered exceptional results across all key metrics, with outstanding engagement and satisfaction scores. This dashboard shows the full picture of your success.</p>
+            </div>
+            <div class="value-score">
+                <div class="score-value">92%</div>
+                <div class="score-label">Success Score</div>
+            </div>
+        </div>
+
+        <!-- Core Metrics Section -->
+        <section class="section animate-in delay-2">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>📈</span> 
+                    <span class="planning-only">Registration & Tracking</span>
+                    <span class="evaluation-only">Event Performance</span>
+                </h2>
+                <span class="section-badge planning-only">Live Tracking</span>
+                <span class="section-badge evaluation-only">Final Results</span>
+            </div>
+
+            <!-- Planning Metrics -->
+            <div class="metrics-grid planning-only">
+                <div class="metric-card status-tracking">
+                    <div class="metric-header">
+                        <span class="metric-label">Registrations</span>
+                        <span class="metric-trend trend-target">Target: 400</span>
+                    </div>
+                    <div class="metric-value">342</div>
+                    <div class="metric-context">86% of target reached</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill tracking" style="width: 86%;"></div>
+                    </div>
+                </div>
+                <div class="metric-card status-good">
+                    <div class="metric-header">
+                        <span class="metric-label">Conversion Rate</span>
+                        <span class="metric-trend trend-up">↑ 5%</span>
+                    </div>
+                    <div class="metric-value">78%</div>
+                    <div class="metric-context">Invite to registration</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill good" style="width: 78%;"></div>
+                    </div>
+                </div>
+                <div class="metric-card status-tracking">
+                    <div class="metric-header">
+                        <span class="metric-label">Session Bookings</span>
+                        <span class="metric-trend trend-target">Avg per delegate</span>
+                    </div>
+                    <div class="metric-value">4.2</div>
+                    <div class="metric-context">1,437 total bookings</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill tracking" style="width: 84%;"></div>
+                    </div>
+                </div>
+                <div class="metric-card status-warning">
+                    <div class="metric-header">
+                        <span class="metric-label">Budget Utilised</span>
+                        <span class="metric-trend trend-target">Target: £140,000</span>
+                    </div>
+                    <div class="metric-value">68%</div>
+                    <div class="metric-context">£95,200 committed</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill warning" style="width: 68%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluation Metrics -->
+            <div class="metrics-grid evaluation-only">
+                <div class="metric-card status-excellent">
+                    <div class="metric-header">
+                        <span class="metric-label">Attendance Rate</span>
+                        <span class="metric-trend trend-up">↑ 18%</span>
+                    </div>
+                    <div class="metric-value">89%</div>
+                    <div class="metric-context">356 of 400 registered</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill excellent" style="width: 89%;"></div>
+                    </div>
+                </div>
+                <div class="metric-card status-excellent">
+                    <div class="metric-header">
+                        <span class="metric-label">Engagement Rate</span>
+                        <span class="metric-trend trend-up">↑ 23%</span>
+                    </div>
+                    <div class="metric-value">94%</div>
+                    <div class="metric-context">Exceptional participation</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill excellent" style="width: 94%;"></div>
+                    </div>
+                </div>
+                <div class="metric-card status-excellent">
+                    <div class="metric-header">
+                        <span class="metric-label">Satisfaction</span>
+                        <span class="metric-trend trend-up">↑ 12%</span>
+                    </div>
+                    <div class="metric-value">4.8/5</div>
+                    <div class="metric-context">Post-event survey</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill excellent" style="width: 96%;"></div>
+                    </div>
+                </div>
+                <div class="metric-card status-good">
+                    <div class="metric-header">
+                        <span class="metric-label">Cost per Delegate</span>
+                        <span class="metric-trend trend-up">↓ £8</span>
+                    </div>
+                    <div class="metric-value">£342</div>
+                    <div class="metric-context">Below £350 target</div>
+                    <div class="metric-progress">
+                        <div class="metric-progress-fill good" style="width: 85%;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="section animate-in delay-3">
+            <div class="charts-grid">
+                <!-- Planning Charts -->
+                <div class="chart-card planning-only">
+                    <div class="chart-title"><span>📊</span> Registration Momentum</div>
+                    <canvas id="registrationChart"></canvas>
+                </div>
+                <div class="chart-card planning-only">
+                    <div class="chart-title"><span>🎯</span> Session Popularity</div>
+                    <canvas id="sessionPopularityChart"></canvas>
+                </div>
+
+                <!-- Evaluation Charts -->
+                <div class="chart-card evaluation-only">
+                    <div class="chart-title"><span>📈</span> Performance Trend</div>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="chart-card evaluation-only">
+                    <div class="chart-title"><span>🎯</span> Session Performance</div>
+                    <canvas id="sessionChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Breakdown Table -->
+        <section class="section animate-in delay-4">
+            <div class="section-header">
+                <h2 class="section-title"><span>📋</span> Detailed Breakdown</h2>
+            </div>
+            
+            <!-- Planning Table -->
+            <div class="data-table-wrapper planning-only">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Current</th>
+                            <th>Target</th>
+                            <th>Progress</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Total Registrations</strong></td>
+                            <td>342</td>
+                            <td>400</td>
+                            <td>86%</td>
+                            <td><span class="status-badge on-track">On Track</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>VIP Attendees</strong></td>
+                            <td>28</td>
+                            <td>35</td>
+                            <td>80%</td>
+                            <td><span class="status-badge on-track">On Track</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Keynote Capacity</strong></td>
+                            <td>342</td>
+                            <td>350</td>
+                            <td>98%</td>
+                            <td><span class="status-badge excellent">Excellent</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Workshop Bookings</strong></td>
+                            <td>856</td>
+                            <td>1,000</td>
+                            <td>86%</td>
+                            <td><span class="status-badge on-track">On Track</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sponsor Activations</strong></td>
+                            <td>12</td>
+                            <td>15</td>
+                            <td>80%</td>
+                            <td><span class="status-badge at-risk">Action Needed</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Catering Confirmed</strong></td>
+                            <td>100%</td>
+                            <td>100%</td>
+                            <td>100%</td>
+                            <td><span class="status-badge excellent">Complete</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Evaluation Table -->
+            <div class="data-table-wrapper evaluation-only">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Actual</th>
+                            <th>Target</th>
+                            <th>Performance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Attendance</strong></td>
+                            <td>356 attendees</td>
+                            <td>320 attendees</td>
+                            <td>111%</td>
+                            <td><span class="status-badge excellent">Excellent</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Registration Conversion</strong></td>
+                            <td>89%</td>
+                            <td>85%</td>
+                            <td>105%</td>
+                            <td><span class="status-badge excellent">Excellent</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Participation Rate</strong></td>
+                            <td>94%</td>
+                            <td>75%</td>
+                            <td>125%</td>
+                            <td><span class="status-badge excellent">Excellent</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Content Hours</strong></td>
+                            <td>52 hours</td>
+                            <td>45 hours</td>
+                            <td>116%</td>
+                            <td><span class="status-badge excellent">Excellent</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gross Margin</strong></td>
+                            <td>38%</td>
+                            <td>35%</td>
+                            <td>109%</td>
+                            <td><span class="status-badge excellent">Excellent</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Net Promoter Score</strong></td>
+                            <td>78</td>
+                            <td>65</td>
+                            <td>120%</td>
+                            <td><span class="status-badge excellent">Excellent</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- AudienceDNA Section (Optional Add-on) -->
+        <section class="audience-dna-section" id="audienceDnaSection">
+            <div class="dna-header" onclick="toggleDNA()">
+                <div class="dna-header-left">
+                    <div class="dna-icon">🧬</div>
+                    <div class="dna-title-group">
+                        <h3>AudienceDNA Intelligence</h3>
+                        <p>Deep audience profiling and personalisation insights</p>
+                    </div>
+                </div>
+                <div class="dna-toggle">
+                    <span class="dna-status">Premium Add-on</span>
+                    <div class="dna-chevron">▼</div>
+                </div>
+            </div>
+            <div class="dna-content">
+                <div class="dna-content-inner">
+                    <!-- DNA Insight -->
+                    <div class="dna-insight">
+                        <h4><span>⚡</span> Audience Snapshot</h4>
+                        <p>Your audience is predominantly analytical, strategic thinkers who value structure and logical approaches. With 70.6% preferring judging over perceiving, they appreciate well-organised agendas and clear outcomes. The strong intuitive preference (67.1%) indicates they're interested in big-picture thinking and innovative concepts.</p>
+                        <div class="dna-badges">
+                            <span class="dna-badge">🎯 Goal-Oriented</span>
+                            <span class="dna-badge">📊 Data-Driven</span>
+                            <span class="dna-badge">🚀 Innovation-Focused</span>
+                            <span class="dna-badge">🤝 Collaborative</span>
+                        </div>
+                    </div>
+
+                    <!-- DNA Metrics -->
+                    <div class="dna-metrics">
+                        <div class="dna-metric">
+                            <div class="dna-metric-value">854</div>
+                            <div class="dna-metric-label">Profiles Analysed</div>
+                        </div>
+                        <div class="dna-metric">
+                            <div class="dna-metric-value">27.1%</div>
+                            <div class="dna-metric-label">Strategists</div>
+                        </div>
+                        <div class="dna-metric">
+                            <div class="dna-metric-value">86:14</div>
+                            <div class="dna-metric-label">Thinking vs Feeling</div>
+                        </div>
+                        <div class="dna-metric">
+                            <div class="dna-metric-value">62.4%</div>
+                            <div class="dna-metric-label">Extrovert Ratio</div>
+                        </div>
+                    </div>
+
+                    <!-- DNA Charts -->
+                    <div class="dna-charts">
+                        <div class="dna-chart-card">
+                            <div class="chart-title"><span>📊</span> Profile Distribution</div>
+                            <canvas id="profileChart"></canvas>
+                        </div>
+                        <div class="dna-chart-card">
+                            <div class="chart-title"><span>⚖️</span> Personality Dimensions</div>
+                            <canvas id="dimensionsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- DNA Recommendations -->
+                    <div style="margin-top: 24px;">
+                        <h4 class="section-title" style="margin-bottom: 16px;"><span>💡</span> Personalisation Recommendations</h4>
+                        <div class="recommendations-grid">
+                            <div class="rec-card priority-high">
+                                <div class="rec-priority">Content Strategy</div>
+                                <div class="rec-title">Data-Rich Presentations</div>
+                                <div class="rec-text">Include case studies, benchmarks, and ROI frameworks. This audience craves evidence-based insights.</div>
+                                <div class="rec-tags">
+                                    <span class="rec-tag">High Impact</span>
+                                    <span class="rec-tag">Engagement</span>
+                                </div>
+                            </div>
+                            <div class="rec-card priority-medium">
+                                <div class="rec-priority">Session Format</div>
+                                <div class="rec-title">Structured Workshops</div>
+                                <div class="rec-text">Design sessions with clear agendas, defined outcomes, and practical takeaways they can implement.</div>
+                                <div class="rec-tags">
+                                    <span class="rec-tag">Structure</span>
+                                    <span class="rec-tag">Actionable</span>
+                                </div>
+                            </div>
+                            <div class="rec-card priority-medium">
+                                <div class="rec-priority">Networking</div>
+                                <div class="rec-title">Strategic Matchmaking</div>
+                                <div class="rec-text">Use profile data to suggest meaningful connections based on complementary skills and objectives.</div>
+                                <div class="rec-tags">
+                                    <span class="rec-tag">Personalised</span>
+                                    <span class="rec-tag">Value-Add</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendations Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>💡</span>
+                    <span class="planning-only">Priority Actions</span>
+                    <span class="evaluation-only">Recommendations for Next Event</span>
+                </h2>
+            </div>
+
+            <!-- Planning Recommendations -->
+            <div class="recommendations-grid planning-only">
+                <div class="rec-card priority-high">
+                    <div class="rec-priority">High Priority</div>
+                    <div class="rec-title">Accelerate Registrations</div>
+                    <div class="rec-text">With 3 weeks remaining, implement a targeted reminder campaign to convert the 58 pending invitations.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Marketing</span>
+                        <span class="rec-tag">Conversion</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-high">
+                    <div class="rec-priority">High Priority</div>
+                    <div class="rec-title">Sponsor Activation</div>
+                    <div class="rec-text">3 sponsor activations pending confirmation. Schedule follow-up calls this week to secure commitments.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Revenue</span>
+                        <span class="rec-tag">Partnerships</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-medium">
+                    <div class="rec-priority">Medium Priority</div>
+                    <div class="rec-title">Workshop Capacity</div>
+                    <div class="rec-text">Two workshops at 95% capacity. Consider opening additional sessions or waitlist management.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Operations</span>
+                        <span class="rec-tag">Experience</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-medium">
+                    <div class="rec-priority">Medium Priority</div>
+                    <div class="rec-title">App Engagement</div>
+                    <div class="rec-text">Only 45% of registrants have downloaded the event app. Push notification campaign recommended.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Technology</span>
+                        <span class="rec-tag">Adoption</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-low">
+                    <div class="rec-priority">Future Planning</div>
+                    <div class="rec-title">Content Capture</div>
+                    <div class="rec-text">Arrange professional photography and videography for post-event content and next year's marketing.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Marketing Assets</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-low">
+                    <div class="rec-priority">Future Planning</div>
+                    <div class="rec-title">Survey Preparation</div>
+                    <div class="rec-text">Finalise post-event survey questions focusing on NPS, session quality, and venue feedback.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Feedback</span>
+                        <span class="rec-tag">Insights</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Evaluation Recommendations -->
+            <div class="recommendations-grid evaluation-only">
+                <div class="rec-card priority-high">
+                    <div class="rec-priority">High Priority</div>
+                    <div class="rec-title">Scale Success Formula</div>
+                    <div class="rec-text">89% attendance is excellent. Document the pre-event engagement strategy that achieved this for future events.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Best Practice</span>
+                        <span class="rec-tag">Repeatability</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-high">
+                    <div class="rec-priority">High Priority</div>
+                    <div class="rec-title">Maximise Session Impact</div>
+                    <div class="rec-text">With strong utilisation, consider premium smaller venues for exclusive feel or expand popular sessions.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Premium Experience</span>
+                        <span class="rec-tag">Higher Engagement</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-medium">
+                    <div class="rec-priority">Medium Priority</div>
+                    <div class="rec-title">Community Platform</div>
+                    <div class="rec-text">Build on 94% engagement success by creating a post-event community platform to maintain momentum year-round.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Community</span>
+                        <span class="rec-tag">Long-term Value</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-medium">
+                    <div class="rec-priority">Medium Priority</div>
+                    <div class="rec-title">Revenue Optimisation</div>
+                    <div class="rec-text">Strong cost control at £342 per delegate. Explore premium add-ons or VIP packages to increase revenue.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Revenue Growth</span>
+                        <span class="rec-tag">Margin Expansion</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-low">
+                    <div class="rec-priority">Future Opportunity</div>
+                    <div class="rec-title">Social Amplification</div>
+                    <div class="rec-text">3.8M reach demonstrates strong brand resonance. Develop influencer partnership and content amplification strategy.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Brand Authority</span>
+                    </div>
+                </div>
+                <div class="rec-card priority-low">
+                    <div class="rec-priority">Future Opportunity</div>
+                    <div class="rec-title">Innovation Lab</div>
+                    <div class="rec-text">With metrics this strong, pilot cutting-edge event tech like AR experiences or AI networking features.</div>
+                    <div class="rec-tags">
+                        <span class="rec-tag">Differentiation</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Next Steps -->
+        <section class="section">
+            <div class="next-steps">
+                <h3>
+                    <span>🚀</span>
+                    <span class="planning-only">Immediate Actions</span>
+                    <span class="evaluation-only">Next Steps</span>
+                </h3>
+                
+                <!-- Planning Next Steps -->
+                <div class="next-steps-grid planning-only">
+                    <div class="next-step">
+                        <div class="next-step-num">1</div>
+                        <p>Send reminder campaign to 58 pending invitations by Friday</p>
+                    </div>
+                    <div class="next-step">
+                        <div class="next-step-num">2</div>
+                        <p>Confirm remaining 3 sponsor activations by end of week</p>
+                    </div>
+                    <div class="next-step">
+                        <div class="next-step-num">3</div>
+                        <p>Review workshop capacity and open additional sessions if needed</p>
+                    </div>
+                    <div class="next-step">
+                        <div class="next-step-num">4</div>
+                        <p>Launch app download push notification campaign</p>
+                    </div>
+                </div>
+
+                <!-- Evaluation Next Steps -->
+                <div class="next-steps-grid evaluation-only">
+                    <div class="next-step">
+                        <div class="next-step-num">1</div>
+                        <p>Celebrate success with team and document best practices that achieved 92% overall performance</p>
+                    </div>
+                    <div class="next-step">
+                        <div class="next-step-num">2</div>
+                        <p>Create case study highlighting the 89% attendance rate and 94% engagement achievements</p>
+                    </div>
+                    <div class="next-step">
+                        <div class="next-step-num">3</div>
+                        <p>Develop premium event packages based on this success to increase revenue opportunities</p>
+                    </div>
+                    <div class="next-step">
+                        <div class="next-step-num">4</div>
+                        <p>Schedule innovation workshop to identify next-level enhancements for future events</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p><span class="footer-brand">Live Group</span> · Full-Service Events Agency · Data-Driven Excellence</p>
+            <p style="margin-top: 8px; opacity: 0.7;">© 2025 Live Group. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Mode switching
+        function setMode(mode) {
+            const body = document.body;
+            const modeBar = document.getElementById('modeBar');
+            const modeLabel = document.getElementById('modeLabel');
+            const planningBtn = document.getElementById('planningBtn');
+            const evaluationBtn = document.getElementById('evaluationBtn');
+
+            if (mode === 'evaluation') {
+                body.classList.add('evaluation-mode');
+                modeBar.classList.add('evaluation');
+                modeLabel.textContent = 'Evaluation Mode';
+                planningBtn.classList.remove('active');
+                evaluationBtn.classList.add('active');
+                initEvaluationCharts();
+            } else {
+                body.classList.remove('evaluation-mode');
+                modeBar.classList.remove('evaluation');
+                modeLabel.textContent = 'Planning Mode';
+                planningBtn.classList.add('active');
+                evaluationBtn.classList.remove('active');
+                initPlanningCharts();
+            }
+        }
+
+        // AudienceDNA toggle
+        function toggleDNA() {
+            const section = document.getElementById('audienceDnaSection');
+            section.classList.toggle('active');
+            
+            // Initialize DNA charts when opened
+            if (section.classList.contains('active')) {
+                initDNACharts();
+            }
+        }
+
+        // Chart configurations
+        const chartColors = {
+            vermilion: '#d7414f',
+            teal: '#009ba7',
+            plum: '#381e38',
+            success: '#00c851',
+            vermilionLight: '#ff7582',
+            tealLight: '#00c4d4',
+            plumLight: '#5a3a5a'
+        };
+
+        let planningCharts = {};
+        let evaluationCharts = {};
+        let dnaCharts = {};
+
+        function initPlanningCharts() {
+            // Destroy existing evaluation charts
+            Object.values(evaluationCharts).forEach(chart => chart && chart.destroy());
+            evaluationCharts = {};
+
+            // Registration momentum chart
+            const regCtx = document.getElementById('registrationChart');
+            if (regCtx && !planningCharts.registration) {
+                planningCharts.registration = new Chart(regCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                        datasets: [{
+                            label: 'Actual',
+                            data: [45, 98, 156, 210, 265, 298, 325, 342],
+                            borderColor: chartColors.teal,
+                            backgroundColor: 'rgba(0, 155, 167, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Target',
+                            data: [50, 100, 150, 200, 250, 300, 350, 400],
+                            borderColor: chartColors.vermilion,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, max: 450 }
+                        }
+                    }
+                });
+            }
+
+            // Session popularity chart
+            const sessCtx = document.getElementById('sessionPopularityChart');
+            if (sessCtx && !planningCharts.sessions) {
+                planningCharts.sessions = new Chart(sessCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Opening Keynote', 'AI Workshop', 'Leadership Panel', 'Tech Demo', 'Closing'],
+                        datasets: [{
+                            label: 'Bookings',
+                            data: [342, 185, 156, 142, 298],
+                            backgroundColor: chartColors.teal,
+                            borderRadius: 8
+                        }, {
+                            label: 'Capacity',
+                            data: [350, 200, 200, 150, 350],
+                            backgroundColor: 'rgba(0, 155, 167, 0.2)',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initEvaluationCharts() {
+            // Destroy existing planning charts
+            Object.values(planningCharts).forEach(chart => chart && chart.destroy());
+            planningCharts = {};
+
+            // Trend chart
+            const trendCtx = document.getElementById('trendChart');
+            if (trendCtx && !evaluationCharts.trend) {
+                evaluationCharts.trend = new Chart(trendCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Q4 2024', 'Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'],
+                        datasets: [{
+                            label: 'Attendance Rate',
+                            data: [72, 75, 79, 84, 89],
+                            borderColor: chartColors.teal,
+                            backgroundColor: 'rgba(0, 155, 167, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Engagement Rate',
+                            data: [75, 80, 85, 89, 94],
+                            borderColor: chartColors.success,
+                            backgroundColor: 'rgba(0, 200, 81, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Satisfaction',
+                            data: [84, 87, 90, 93, 96],
+                            borderColor: chartColors.vermilion,
+                            backgroundColor: 'rgba(215, 65, 79, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+                        },
+                        scales: {
+                            y: { beginAtZero: false, min: 60, max: 100, ticks: { callback: v => v + '%' } }
+                        }
+                    }
+                });
+            }
+
+            // Session performance chart
+            const sessionCtx = document.getElementById('sessionChart');
+            if (sessionCtx && !evaluationCharts.session) {
+                evaluationCharts.session = new Chart(sessionCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Keynotes', 'Workshops', 'Panels', 'Networking', 'Breakouts'],
+                        datasets: [{
+                            label: 'Attendance',
+                            data: [96, 85, 88, 92, 78],
+                            backgroundColor: chartColors.teal,
+                            borderRadius: 8
+                        }, {
+                            label: 'Engagement',
+                            data: [92, 96, 90, 94, 93],
+                            backgroundColor: chartColors.success,
+                            borderRadius: 8
+                        }, {
+                            label: 'Satisfaction',
+                            data: [94, 92, 89, 93, 88],
+                            backgroundColor: chartColors.vermilion,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initDNACharts() {
+            // Profile distribution chart
+            const profileCtx = document.getElementById('profileChart');
+            if (profileCtx && !dnaCharts.profile) {
+                dnaCharts.profile = new Chart(profileCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Strategist', 'Architect', 'Scholar', 'Innovator', 'Analyst', 'Others'],
+                        datasets: [{
+                            data: [23, 12, 10, 10, 8, 22],
+                            backgroundColor: [
+                                chartColors.vermilion,
+                                chartColors.teal,
+                                chartColors.plum,
+                                chartColors.vermilionLight,
+                                chartColors.tealLight,
+                                chartColors.plumLight
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+                        }
+                    }
+                });
+            }
+
+            // Dimensions chart
+            const dimCtx = document.getElementById('dimensionsChart');
+            if (dimCtx && !dnaCharts.dimensions) {
+                dnaCharts.dimensions = new Chart(dimCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Thinking/Feeling', 'Extro/Introvert', 'Judging/Perceiving', 'Intuition/Sensing'],
+                        datasets: [{
+                            label: 'Primary',
+                            data: [73, 53, 60, 57],
+                            backgroundColor: chartColors.teal,
+                            borderRadius: 8
+                        }, {
+                            label: 'Secondary',
+                            data: [12, 32, 25, 28],
+                            backgroundColor: chartColors.vermilion,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            initPlanningCharts();
+        });
+    </script>
+</body>
+</html>
